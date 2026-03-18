@@ -1,0 +1,85 @@
+/* Gelato Sans Font */
+@font-face {
+  font-family: 'Gelato Sans';
+  src: url('/fonts/GelatoSans-Light.woff2') format('woff2'),
+       url('/fonts/GelatoSans-Light.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Gelato Sans';
+  src: url('/fonts/GelatoSans-Regular.woff2') format('woff2'),
+       url('/fonts/GelatoSans-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Gelato Sans';
+  src: url('/fonts/GelatoSans-Bold.woff2') format('woff2'),
+       url('/fonts/GelatoSans-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 13%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 13%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 13%;
+    --primary: 0 0% 13%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 97%;
+    --secondary-foreground: 0 0% 13%;
+    --muted: 0 0% 95%;
+    --muted-foreground: 0 0% 54%;
+    --accent: 0 0% 95%;
+    --accent-foreground: 0 0% 13%;
+    --destructive: 9 100% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 83%;
+    --input: 0 0% 83%;
+    --ring: 0 0% 13%;
+    --chart-1: 280 39% 28%;
+    --chart-2: 155 55% 35%;
+    --chart-3: 201 100% 35%;
+    --chart-4: 46 100% 50%;
+    --chart-5: 27 100% 50%;
+    --radius: 0.5rem;
+
+    /* GNX Sidebar */
+    --sidebar-background: 0 0% 13%;
+    --sidebar-foreground: 0 0% 97%;
+    --sidebar-primary: 0 0% 13%;
+    --sidebar-primary-foreground: 0 0% 97%;
+    --sidebar-accent: 0 0% 20%;
+    --sidebar-accent-foreground: 0 0% 97%;
+    --sidebar-border: 0 0% 22%;
+    --sidebar-ring: 0 0% 13%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Gelato Sans', system-ui, -apple-system, sans-serif;
+  }
+}
