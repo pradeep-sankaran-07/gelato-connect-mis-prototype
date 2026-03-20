@@ -2,15 +2,17 @@ import type { Metadata } from 'next'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || ''
+
 export const metadata: Metadata = {
   title: 'Gelato Connect MIS',
   description: 'Gelato Connect Management Information System',
   icons: {
     icon: [
-      { url: '/favicon.ico', sizes: 'any' },
-      { url: '/favicon.png', type: 'image/png' },
+      { url: `${basePath}/favicon.ico`, sizes: 'any' },
+      { url: `${basePath}/favicon.png`, type: 'image/png' },
     ],
-    apple: '/favicon.png',
+    apple: `${basePath}/favicon.png`,
   },
 }
 
