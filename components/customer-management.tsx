@@ -3,37 +3,65 @@
 import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, Info } from "lucide-react"
-import Header from "@/components/header"
-import LeftMenu from "@/components/left-menu"
+import { ChevronLeft, Info, Search, Plus, Building2, Mail, Phone, User, Clock, FileText, MessageSquare, Star, X } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useNavigation } from "@/lib/navigation-context"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 
+// Pricing tiers with auto-discount percentages
+const pricingTiers = {
+  Standard: { discount: 0, color: "bg-neutral-20 text-neutral-90" },
+  Silver: { discount: 5, color: "bg-neutral-30 text-neutral-90" },
+  Gold: { discount: 10, color: "bg-[#ffe7ab] text-[#463710]" },
+  Platinum: { discount: 15, color: "bg-[#d7bce2] text-[#542c65]" },
+} as const
+
+type PricingTier = keyof typeof pricingTiers
+
 // Sample customer data
 const customers = [
-  { id: "acme-corp", name: "Acme Corp", status: "Active" },
-  { id: "beta-solutions", name: "Beta Solutions", status: "Active" },
-  { id: "gamma-industries", name: "Gamma Industries", status: "Active" },
-  { id: "delta-enterprises", name: "Delta Enterprises", status: "Inactive" },
-  { id: "epsilon-tech", name: "Epsilon Tech", status: "Active" },
-  { id: "zeta-systems", name: "Zeta Systems", status: "Active" },
-  { id: "theta-innovations", name: "Theta Innovations", status: "Active" },
-  { id: "omega-designs", name: "Omega Designs", status: "Active" },
+  { id: "acme-corp", name: "Acme Corp", status: "Active", tier: "Gold" as PricingTier, totalOrders: 142, totalRevenue: 284500 },
+  { id: "beta-solutions", name: "Beta Solutions", status: "Active", tier: "Silver" as PricingTier, totalOrders: 87, totalRevenue: 156200 },
+  { id: "gamma-industries", name: "Gamma Industries", status: "Active", tier: "Platinum" as PricingTier, totalOrders: 215, totalRevenue: 523800 },
+  { id: "delta-enterprises", name: "Delta Enterprises", status: "Inactive", tier: "Standard" as PricingTier, totalOrders: 23, totalRevenue: 34100 },
+  { id: "epsilon-tech", name: "Epsilon Tech", status: "Active", tier: "Gold" as PricingTier, totalOrders: 98, totalRevenue: 198700 },
+  { id: "zeta-systems", name: "Zeta Systems", status: "Active", tier: "Silver" as PricingTier, totalOrders: 64, totalRevenue: 112400 },
+  { id: "theta-innovations", name: "Theta Innovations", status: "Active", tier: "Standard" as PricingTier, totalOrders: 41, totalRevenue: 67300 },
+  { id: "omega-designs", name: "Omega Designs", status: "Active", tier: "Platinum" as PricingTier, totalOrders: 178, totalRevenue: 412600 },
 ]
 
 // Sample customer details
-const customerDetails = {
+const customerDetails: Record<string, {
+  name: string
+  currency: string
+  estimationEnabled: string
+  contacts: Array<{ name: string; email: string; phone: string; primary: boolean; role: string }>
+  salesRep: string
+  cse: string
+  estimator: string
+  invoicingTerms: string
+  invoiceEmail: string
+  invoiceTrigger: string
+  daysAfterShipment?: number
+  consolidationType?: string
+  tier: PricingTier
+  creditLimit: number
+  paymentTerms: string
+  address: string
+  website: string
+  notifications: { orderUpdates: boolean; invoiceReminders: boolean; proofApprovals: boolean; marketingEmails: boolean }
+}> = {
   "acme-corp": {
     name: "Acme Corp",
     currency: "British Poundsterling",
     estimationEnabled: "Yes",
     contacts: [
-      { name: "Jane Smith", email: "jane@acmecorp.com", phone: "+44111111111", primary: true },
-      { name: "John Doe", email: "john@acmecorp.com", phone: "+44112345212", primary: false },
-      { name: "Sarah Johnson", email: "sarah@acmecorp.com", phone: "+44112345213", primary: false },
+      { name: "Jane Smith", email: "jane@acmecorp.com", phone: "+44111111111", primary: true, role: "Procurement Manager" },
+      { name: "John Doe", email: "john@acmecorp.com", phone: "+44112345212", primary: false, role: "Creative Director" },
+      { name: "Sarah Johnson", email: "sarah@acmecorp.com", phone: "+44112345213", primary: false, role: "Finance Director" },
     ],
     salesRep: "Mary Purwanegara",
     cse: "Josh Callahan",
@@ -41,14 +69,20 @@ const customerDetails = {
     invoicingTerms: "Net 30",
     invoiceEmail: "accounts@acmecorp.com",
     invoiceTrigger: "automatic",
+    tier: "Gold",
+    creditLimit: 50000,
+    paymentTerms: "Net 30",
+    address: "123 Business Park, London, UK EC1A 1BB",
+    website: "www.acmecorp.com",
+    notifications: { orderUpdates: true, invoiceReminders: true, proofApprovals: true, marketingEmails: false },
   },
   "beta-solutions": {
     name: "Beta Solutions",
     currency: "US Dollar",
     estimationEnabled: "Yes",
     contacts: [
-      { name: "Michael Brown", email: "michael@betasolutions.com", phone: "+1555123456", primary: true },
-      { name: "Emily Clark", email: "emily@betasolutions.com", phone: "+1555789012", primary: false },
+      { name: "Michael Brown", email: "michael@betasolutions.com", phone: "+1555123456", primary: true, role: "Operations Manager" },
+      { name: "Emily Clark", email: "emily@betasolutions.com", phone: "+1555789012", primary: false, role: "Buyer" },
     ],
     salesRep: "David Wilson",
     cse: "Rebecca Moore",
@@ -57,14 +91,20 @@ const customerDetails = {
     invoiceEmail: "finance@betasolutions.com",
     invoiceTrigger: "days_after",
     daysAfterShipment: 7,
+    tier: "Silver",
+    creditLimit: 25000,
+    paymentTerms: "Net 15",
+    address: "456 Commerce Ave, New York, NY 10001",
+    website: "www.betasolutions.com",
+    notifications: { orderUpdates: true, invoiceReminders: true, proofApprovals: false, marketingEmails: true },
   },
   "gamma-industries": {
     name: "Gamma Industries",
     currency: "Euro",
     estimationEnabled: "Yes",
     contacts: [
-      { name: "Robert Martin", email: "robert@gammaindustries.eu", phone: "+33123456789", primary: true },
-      { name: "Sophie Dubois", email: "sophie@gammaindustries.eu", phone: "+33987654321", primary: false },
+      { name: "Robert Martin", email: "robert@gammaindustries.eu", phone: "+33123456789", primary: true, role: "CEO" },
+      { name: "Sophie Dubois", email: "sophie@gammaindustries.eu", phone: "+33987654321", primary: false, role: "Print Buyer" },
     ],
     salesRep: "Pierre Leclerc",
     cse: "Marie Dupont",
@@ -73,26 +113,38 @@ const customerDetails = {
     invoiceEmail: "accounting@gammaindustries.eu",
     invoiceTrigger: "consolidated",
     consolidationType: "monthly",
+    tier: "Platinum",
+    creditLimit: 100000,
+    paymentTerms: "Net 45",
+    address: "78 Rue de l'Industrie, Paris, France 75008",
+    website: "www.gammaindustries.eu",
+    notifications: { orderUpdates: true, invoiceReminders: true, proofApprovals: true, marketingEmails: true },
   },
   "delta-enterprises": {
     name: "Delta Enterprises",
     currency: "Japanese Yen",
     estimationEnabled: "No",
-    contacts: [{ name: "Takashi Yamamoto", email: "takashi@deltaent.jp", phone: "+81312345678", primary: true }],
+    contacts: [{ name: "Takashi Yamamoto", email: "takashi@deltaent.jp", phone: "+81312345678", primary: true, role: "General Manager" }],
     salesRep: "Kenji Nakamura",
     cse: "Yuki Tanaka",
     estimator: "Hiroshi Suzuki",
     invoicingTerms: "Net 60",
     invoiceEmail: "finance@deltaent.jp",
     invoiceTrigger: "manual",
+    tier: "Standard",
+    creditLimit: 10000,
+    paymentTerms: "Net 60",
+    address: "1-2-3 Shibuya, Tokyo, Japan 150-0002",
+    website: "www.deltaent.jp",
+    notifications: { orderUpdates: true, invoiceReminders: false, proofApprovals: false, marketingEmails: false },
   },
   "epsilon-tech": {
     name: "Epsilon Tech",
     currency: "British Poundsterling",
     estimationEnabled: "Yes",
     contacts: [
-      { name: "William Harris", email: "william@epsilontech.co.uk", phone: "+44123456789", primary: true },
-      { name: "Elizabeth Taylor", email: "elizabeth@epsilontech.co.uk", phone: "+44987654321", primary: false },
+      { name: "William Harris", email: "william@epsilontech.co.uk", phone: "+44123456789", primary: true, role: "Technical Director" },
+      { name: "Elizabeth Taylor", email: "elizabeth@epsilontech.co.uk", phone: "+44987654321", primary: false, role: "Marketing Manager" },
     ],
     salesRep: "George Davies",
     cse: "Victoria Wilson",
@@ -100,12 +152,18 @@ const customerDetails = {
     invoicingTerms: "Net 30",
     invoiceEmail: "accounts@epsilontech.co.uk",
     invoiceTrigger: "automatic",
+    tier: "Gold",
+    creditLimit: 40000,
+    paymentTerms: "Net 30",
+    address: "45 Tech Drive, Manchester, UK M1 1AA",
+    website: "www.epsilontech.co.uk",
+    notifications: { orderUpdates: true, invoiceReminders: true, proofApprovals: true, marketingEmails: false },
   },
   "zeta-systems": {
     name: "Zeta Systems",
     currency: "Australian Dollar",
     estimationEnabled: "Yes",
-    contacts: [{ name: "James Wilson", email: "james@zetasystems.com.au", phone: "+61234567890", primary: true }],
+    contacts: [{ name: "James Wilson", email: "james@zetasystems.com.au", phone: "+61234567890", primary: true, role: "Owner" }],
     salesRep: "Sarah Johnson",
     cse: "Michael Brown",
     estimator: "Emma Davis",
@@ -113,14 +171,20 @@ const customerDetails = {
     invoiceEmail: "billing@zetasystems.com.au",
     invoiceTrigger: "consolidated",
     consolidationType: "weekly",
+    tier: "Silver",
+    creditLimit: 20000,
+    paymentTerms: "Net 15",
+    address: "12 Harbour Road, Sydney, NSW 2000",
+    website: "www.zetasystems.com.au",
+    notifications: { orderUpdates: true, invoiceReminders: true, proofApprovals: false, marketingEmails: true },
   },
   "theta-innovations": {
     name: "Theta Innovations",
     currency: "Canadian Dollar",
     estimationEnabled: "Yes",
     contacts: [
-      { name: "David Miller", email: "david@thetainnovations.ca", phone: "+1416123456", primary: true },
-      { name: "Jennifer Wilson", email: "jennifer@thetainnovations.ca", phone: "+1416789012", primary: false },
+      { name: "David Miller", email: "david@thetainnovations.ca", phone: "+1416123456", primary: true, role: "VP Operations" },
+      { name: "Jennifer Wilson", email: "jennifer@thetainnovations.ca", phone: "+1416789012", primary: false, role: "Procurement" },
     ],
     salesRep: "Robert Clark",
     cse: "Patricia Moore",
@@ -129,14 +193,20 @@ const customerDetails = {
     invoiceEmail: "accounts@thetainnovations.ca",
     invoiceTrigger: "days_after",
     daysAfterShipment: 14,
+    tier: "Standard",
+    creditLimit: 15000,
+    paymentTerms: "Net 30",
+    address: "800 Bay St, Toronto, ON M5S 1Z4",
+    website: "www.thetainnovations.ca",
+    notifications: { orderUpdates: true, invoiceReminders: true, proofApprovals: true, marketingEmails: false },
   },
   "omega-designs": {
     name: "Omega Designs",
     currency: "Singapore Dollar",
     estimationEnabled: "Yes",
     contacts: [
-      { name: "Li Wei", email: "liwei@omegadesigns.sg", phone: "+6561234567", primary: true },
-      { name: "Chen Mei", email: "chenmei@omegadesigns.sg", phone: "+6567890123", primary: false },
+      { name: "Li Wei", email: "liwei@omegadesigns.sg", phone: "+6561234567", primary: true, role: "Managing Director" },
+      { name: "Chen Mei", email: "chenmei@omegadesigns.sg", phone: "+6567890123", primary: false, role: "Art Director" },
     ],
     salesRep: "Tan Hui Ling",
     cse: "Wong Jian Hao",
@@ -144,39 +214,194 @@ const customerDetails = {
     invoicingTerms: "Net 45",
     invoiceEmail: "finance@omegadesigns.sg",
     invoiceTrigger: "manual",
+    tier: "Platinum",
+    creditLimit: 80000,
+    paymentTerms: "Net 45",
+    address: "50 Raffles Place, Singapore 048623",
+    website: "www.omegadesigns.sg",
+    notifications: { orderUpdates: true, invoiceReminders: true, proofApprovals: true, marketingEmails: true },
   },
 }
 
-interface CustomerManagementProps {
-  onBackClick: () => void
-  onInventoryClick: () => void
-  onInventoryAllocationClick: () => void
-  onOrderClick: () => void
-  onSchedulingClick: () => void
-  onControlPanelClick: () => void
-  onPerformanceClick: () => void
-  onCustomersClick: () => void
-  onProductionTrackerClick: () => void
-  onProductionStationsClick: () => void
-  onLogisticsAnalyticsClick: () => void
-  onShipmentsClick: () => void
+// Sample order data per customer
+const customerOrders: Record<string, Array<{ id: string; date: string; items: string; status: string; amount: number }>> = {
+  "acme-corp": [
+    { id: "ORD-2024-001", date: "2024-03-15", items: "Business Cards (5000)", status: "Delivered", amount: 1250 },
+    { id: "ORD-2024-012", date: "2024-03-10", items: "Brochures A4 Tri-fold (2000)", status: "In Production", amount: 3400 },
+    { id: "ORD-2024-023", date: "2024-03-05", items: "Letterheads (10000)", status: "Shipped", amount: 2100 },
+    { id: "ORD-2024-034", date: "2024-02-28", items: "Posters A1 (500)", status: "Delivered", amount: 4500 },
+    { id: "ORD-2024-045", date: "2024-02-20", items: "Presentation Folders (1000)", status: "Delivered", amount: 5600 },
+    { id: "ORD-2024-056", date: "2024-02-15", items: "Stickers (20000)", status: "Delivered", amount: 1800 },
+    { id: "ORD-2024-067", date: "2024-01-30", items: "Annual Report (500)", status: "Delivered", amount: 12500 },
+  ],
+  "beta-solutions": [
+    { id: "ORD-2024-002", date: "2024-03-14", items: "Postcards (3000)", status: "Awaiting Approval", amount: 890 },
+    { id: "ORD-2024-015", date: "2024-03-08", items: "Banners (10)", status: "Delivered", amount: 2200 },
+    { id: "ORD-2024-028", date: "2024-02-25", items: "Flyers A5 (5000)", status: "Delivered", amount: 1100 },
+  ],
+  "gamma-industries": [
+    { id: "ORD-2024-003", date: "2024-03-13", items: "Catalogues (1000)", status: "In Production", amount: 8900 },
+    { id: "ORD-2024-016", date: "2024-03-07", items: "Business Cards (10000)", status: "Delivered", amount: 2400 },
+    { id: "ORD-2024-029", date: "2024-02-22", items: "Packaging Boxes (5000)", status: "Delivered", amount: 15600 },
+    { id: "ORD-2024-040", date: "2024-02-10", items: "Labels (50000)", status: "Delivered", amount: 4200 },
+    { id: "ORD-2024-051", date: "2024-01-28", items: "Product Manuals (2000)", status: "Delivered", amount: 6800 },
+  ],
+  "delta-enterprises": [
+    { id: "ORD-2024-004", date: "2024-02-01", items: "Business Cards (1000)", status: "Delivered", amount: 320 },
+    { id: "ORD-2024-017", date: "2024-01-15", items: "Envelopes (2000)", status: "Delivered", amount: 680 },
+  ],
+  "epsilon-tech": [
+    { id: "ORD-2024-005", date: "2024-03-12", items: "Tech Spec Sheets (3000)", status: "Shipped", amount: 2700 },
+    { id: "ORD-2024-018", date: "2024-03-01", items: "Event Banners (8)", status: "Delivered", amount: 3200 },
+    { id: "ORD-2024-031", date: "2024-02-18", items: "Notebooks Branded (500)", status: "Delivered", amount: 4100 },
+  ],
+  "zeta-systems": [
+    { id: "ORD-2024-006", date: "2024-03-11", items: "Flyers DL (10000)", status: "In Production", amount: 1400 },
+    { id: "ORD-2024-019", date: "2024-02-28", items: "Calendars (500)", status: "Delivered", amount: 3800 },
+  ],
+  "theta-innovations": [
+    { id: "ORD-2024-007", date: "2024-03-10", items: "Brochures (1500)", status: "Awaiting Approval", amount: 2100 },
+    { id: "ORD-2024-020", date: "2024-02-20", items: "Posters A2 (200)", status: "Delivered", amount: 1600 },
+  ],
+  "omega-designs": [
+    { id: "ORD-2024-008", date: "2024-03-14", items: "Art Prints (100)", status: "In Production", amount: 5400 },
+    { id: "ORD-2024-021", date: "2024-03-06", items: "Lookbook (500)", status: "Shipped", amount: 9200 },
+    { id: "ORD-2024-033", date: "2024-02-20", items: "Packaging Sleeves (3000)", status: "Delivered", amount: 7100 },
+    { id: "ORD-2024-044", date: "2024-02-05", items: "Stationery Set (1000)", status: "Delivered", amount: 6300 },
+  ],
 }
 
-export default function CustomerManagement({
-  onBackClick,
-  onInventoryClick,
-  onInventoryAllocationClick,
-  onOrderClick,
-  onSchedulingClick,
-  onControlPanelClick,
-  onPerformanceClick,
-  onCustomersClick,
-  onProductionTrackerClick,
-  onProductionStationsClick,
-  onLogisticsAnalyticsClick,
-  onShipmentsClick,
-}: CustomerManagementProps) {
+// Sample invoice data per customer
+const customerInvoices: Record<string, Array<{ id: string; date: string; dueDate: string; amount: number; status: string; orderId: string }>> = {
+  "acme-corp": [
+    { id: "INV-2024-001", date: "2024-03-15", dueDate: "2024-04-14", amount: 1250, status: "Paid", orderId: "ORD-2024-001" },
+    { id: "INV-2024-012", date: "2024-03-05", dueDate: "2024-04-04", amount: 2100, status: "Sent", orderId: "ORD-2024-023" },
+    { id: "INV-2024-023", date: "2024-02-28", dueDate: "2024-03-29", amount: 4500, status: "Paid", orderId: "ORD-2024-034" },
+    { id: "INV-2024-034", date: "2024-02-20", dueDate: "2024-03-21", amount: 5600, status: "Paid", orderId: "ORD-2024-045" },
+    { id: "INV-2024-045", date: "2024-02-15", dueDate: "2024-03-16", amount: 1800, status: "Overdue", orderId: "ORD-2024-056" },
+    { id: "INV-2024-056", date: "2024-01-30", dueDate: "2024-03-01", amount: 12500, status: "Paid", orderId: "ORD-2024-067" },
+  ],
+  "beta-solutions": [
+    { id: "INV-2024-002", date: "2024-03-08", dueDate: "2024-03-23", amount: 2200, status: "Paid", orderId: "ORD-2024-015" },
+    { id: "INV-2024-015", date: "2024-02-25", dueDate: "2024-03-12", amount: 1100, status: "Paid", orderId: "ORD-2024-028" },
+  ],
+  "gamma-industries": [
+    { id: "INV-2024-003", date: "2024-03-07", dueDate: "2024-04-21", amount: 2400, status: "Sent", orderId: "ORD-2024-016" },
+    { id: "INV-2024-016", date: "2024-02-22", dueDate: "2024-04-07", amount: 15600, status: "Paid", orderId: "ORD-2024-029" },
+    { id: "INV-2024-027", date: "2024-02-10", dueDate: "2024-03-26", amount: 4200, status: "Paid", orderId: "ORD-2024-040" },
+    { id: "INV-2024-038", date: "2024-01-28", dueDate: "2024-03-13", amount: 6800, status: "Paid", orderId: "ORD-2024-051" },
+  ],
+  "delta-enterprises": [
+    { id: "INV-2024-004", date: "2024-02-01", dueDate: "2024-04-01", amount: 320, status: "Paid", orderId: "ORD-2024-004" },
+    { id: "INV-2024-017", date: "2024-01-15", dueDate: "2024-03-15", amount: 680, status: "Overdue", orderId: "ORD-2024-017" },
+  ],
+  "epsilon-tech": [
+    { id: "INV-2024-005", date: "2024-03-01", dueDate: "2024-03-31", amount: 3200, status: "Sent", orderId: "ORD-2024-018" },
+    { id: "INV-2024-018", date: "2024-02-18", dueDate: "2024-03-19", amount: 4100, status: "Paid", orderId: "ORD-2024-031" },
+  ],
+  "zeta-systems": [
+    { id: "INV-2024-006", date: "2024-02-28", dueDate: "2024-03-14", amount: 3800, status: "Paid", orderId: "ORD-2024-019" },
+  ],
+  "theta-innovations": [
+    { id: "INV-2024-007", date: "2024-02-20", dueDate: "2024-03-21", amount: 1600, status: "Paid", orderId: "ORD-2024-020" },
+  ],
+  "omega-designs": [
+    { id: "INV-2024-008", date: "2024-03-06", dueDate: "2024-04-20", amount: 9200, status: "Sent", orderId: "ORD-2024-021" },
+    { id: "INV-2024-021", date: "2024-02-20", dueDate: "2024-04-05", amount: 7100, status: "Paid", orderId: "ORD-2024-033" },
+    { id: "INV-2024-032", date: "2024-02-05", dueDate: "2024-03-21", amount: 6300, status: "Paid", orderId: "ORD-2024-044" },
+  ],
+}
+
+// Sample activity data per customer
+const customerActivities: Record<string, Array<{ date: string; time: string; type: string; description: string; user: string }>> = {
+  "acme-corp": [
+    { date: "2024-03-15", time: "14:32", type: "order", description: "Order ORD-2024-001 delivered", user: "System" },
+    { date: "2024-03-15", time: "09:15", type: "invoice", description: "Invoice INV-2024-001 payment received", user: "System" },
+    { date: "2024-03-12", time: "16:45", type: "proof", description: "Proof approved for ORD-2024-012", user: "Jane Smith" },
+    { date: "2024-03-10", time: "11:20", type: "order", description: "Order ORD-2024-012 placed - Brochures A4 Tri-fold", user: "Jane Smith" },
+    { date: "2024-03-08", time: "10:00", type: "support", description: "Support ticket #1234 resolved - Delivery query", user: "Josh Callahan" },
+    { date: "2024-03-05", time: "13:30", type: "invoice", description: "Invoice INV-2024-012 sent", user: "System" },
+    { date: "2024-03-05", time: "09:45", type: "order", description: "Order ORD-2024-023 shipped", user: "System" },
+    { date: "2024-02-28", time: "15:10", type: "order", description: "Order ORD-2024-034 delivered", user: "System" },
+    { date: "2024-02-25", time: "11:00", type: "note", description: "Updated pricing tier from Silver to Gold", user: "Mary Purwanegara" },
+    { date: "2024-02-20", time: "14:20", type: "order", description: "Order ORD-2024-045 delivered", user: "System" },
+  ],
+  "beta-solutions": [
+    { date: "2024-03-14", time: "10:00", type: "order", description: "Order ORD-2024-002 placed - Postcards", user: "Michael Brown" },
+    { date: "2024-03-08", time: "16:00", type: "order", description: "Order ORD-2024-015 delivered", user: "System" },
+    { date: "2024-03-08", time: "09:30", type: "invoice", description: "Invoice INV-2024-002 payment received", user: "System" },
+    { date: "2024-02-25", time: "14:15", type: "order", description: "Order ORD-2024-028 delivered", user: "System" },
+  ],
+  "gamma-industries": [
+    { date: "2024-03-13", time: "11:30", type: "order", description: "Order ORD-2024-003 placed - Catalogues", user: "Robert Martin" },
+    { date: "2024-03-07", time: "15:45", type: "invoice", description: "Invoice INV-2024-003 sent", user: "System" },
+    { date: "2024-03-07", time: "10:00", type: "order", description: "Order ORD-2024-016 delivered", user: "System" },
+    { date: "2024-02-22", time: "13:20", type: "order", description: "Order ORD-2024-029 delivered", user: "System" },
+    { date: "2024-02-22", time: "09:00", type: "invoice", description: "Invoice INV-2024-016 payment received", user: "System" },
+  ],
+  "delta-enterprises": [
+    { date: "2024-02-01", time: "10:30", type: "order", description: "Order ORD-2024-004 delivered", user: "System" },
+    { date: "2024-01-15", time: "14:00", type: "order", description: "Order ORD-2024-017 delivered", user: "System" },
+    { date: "2024-01-10", time: "09:00", type: "note", description: "Customer marked as inactive - low order volume", user: "Kenji Nakamura" },
+  ],
+  "epsilon-tech": [
+    { date: "2024-03-12", time: "11:00", type: "order", description: "Order ORD-2024-005 shipped", user: "System" },
+    { date: "2024-03-01", time: "15:30", type: "order", description: "Order ORD-2024-018 delivered", user: "System" },
+    { date: "2024-02-18", time: "10:45", type: "order", description: "Order ORD-2024-031 delivered", user: "System" },
+  ],
+  "zeta-systems": [
+    { date: "2024-03-11", time: "09:15", type: "order", description: "Order ORD-2024-006 placed - Flyers DL", user: "James Wilson" },
+    { date: "2024-02-28", time: "14:30", type: "order", description: "Order ORD-2024-019 delivered", user: "System" },
+  ],
+  "theta-innovations": [
+    { date: "2024-03-10", time: "10:00", type: "order", description: "Order ORD-2024-007 placed - Brochures", user: "David Miller" },
+    { date: "2024-02-20", time: "16:00", type: "order", description: "Order ORD-2024-020 delivered", user: "System" },
+  ],
+  "omega-designs": [
+    { date: "2024-03-14", time: "13:00", type: "order", description: "Order ORD-2024-008 placed - Art Prints", user: "Li Wei" },
+    { date: "2024-03-06", time: "11:30", type: "order", description: "Order ORD-2024-021 shipped", user: "System" },
+    { date: "2024-02-20", time: "15:00", type: "order", description: "Order ORD-2024-033 delivered", user: "System" },
+    { date: "2024-02-05", time: "10:00", type: "order", description: "Order ORD-2024-044 delivered", user: "System" },
+  ],
+}
+
+// Sample notes data per customer
+const initialCustomerNotes: Record<string, Array<{ id: string; date: string; author: string; content: string }>> = {
+  "acme-corp": [
+    { id: "n1", date: "2024-03-10T14:30:00", author: "Mary Purwanegara", content: "Client interested in exploring packaging options for Q2 campaign. Schedule follow-up meeting for next week." },
+    { id: "n2", date: "2024-02-25T11:00:00", author: "Mary Purwanegara", content: "Upgraded pricing tier from Silver to Gold based on order volume. Customer approved the new discount structure." },
+    { id: "n3", date: "2024-02-15T09:45:00", author: "Josh Callahan", content: "Resolved delivery delay issue on ORD-2024-056. Customer satisfied with resolution - offered 5% discount on next order as goodwill." },
+    { id: "n4", date: "2024-01-20T16:00:00", author: "Amy Farah Fowler", content: "Annual report estimate approved. Customer wants premium paper stock (300gsm) with spot UV on cover." },
+  ],
+  "beta-solutions": [
+    { id: "n5", date: "2024-03-12T10:00:00", author: "David Wilson", content: "Exploring larger format printing. May upgrade tier next quarter." },
+  ],
+  "gamma-industries": [
+    { id: "n6", date: "2024-03-01T14:00:00", author: "Pierre Leclerc", content: "Key account - ensure priority handling on all orders. CEO personally reviews proofs." },
+    { id: "n7", date: "2024-02-15T11:30:00", author: "Marie Dupont", content: "Consolidation invoicing working well. Customer prefers monthly invoicing cycle." },
+  ],
+  "delta-enterprises": [
+    { id: "n8", date: "2024-01-10T09:00:00", author: "Kenji Nakamura", content: "Customer marked as inactive due to low order volume. Re-engage in Q2 with promotional offer." },
+  ],
+  "epsilon-tech": [
+    { id: "n9", date: "2024-03-05T15:00:00", author: "George Davies", content: "Planning large event in May - expect bulk order for banners, brochures, and branded merchandise." },
+  ],
+  "zeta-systems": [
+    { id: "n10", date: "2024-03-01T10:00:00", author: "Sarah Johnson", content: "New marketing campaign launching in April. Expect increased order volume." },
+  ],
+  "theta-innovations": [],
+  "omega-designs": [
+    { id: "n11", date: "2024-03-10T13:00:00", author: "Tan Hui Ling", content: "Premium client - always requires highest quality print output. Prefers Pantone matching." },
+    { id: "n12", date: "2024-02-28T10:30:00", author: "Wong Jian Hao", content: "Art director Chen Mei is the key decision-maker for all design approvals." },
+  ],
+}
+
+type DetailTab = "overview" | "orders" | "invoices" | "activity" | "notes"
+
+export default function CustomerManagement() {
+  const { navigateTo } = useNavigation()
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<DetailTab>("overview")
   const [isEditingInvoice, setIsEditingInvoice] = useState(false)
   const [invoiceTerms, setInvoiceTerms] = useState("")
   const [invoiceTrigger, setInvoiceTrigger] = useState("")
@@ -185,19 +410,28 @@ export default function CustomerManagement({
   const [customTerms, setCustomTerms] = useState("")
   const [showCustomTerms, setShowCustomTerms] = useState(false)
   const [invoiceEmail, setInvoiceEmail] = useState("")
+  const [searchQuery, setSearchQuery] = useState("")
+  const [filterTier, setFilterTier] = useState<string>("all")
+  const [filterStatus, setFilterStatus] = useState<string>("all")
+  const [showAddCustomerModal, setShowAddCustomerModal] = useState(false)
+  const [customerNotes, setCustomerNotes] = useState(initialCustomerNotes)
+  const [newNoteText, setNewNoteText] = useState("")
 
   const handleCustomerClick = (customerId: string) => {
     setSelectedCustomerId(customerId)
+    setActiveTab("overview")
     if (customerId) {
-      const customer = customerDetails[customerId as keyof typeof customerDetails]
-      setInvoiceTerms(customer.invoicingTerms)
-      setInvoiceTrigger(customer.invoiceTrigger || "automatic")
-      setDaysAfterShipment(customer.daysAfterShipment || 7)
-      setConsolidationType(customer.consolidationType || "monthly")
-      setShowCustomTerms(customer.invoicingTerms.startsWith("Custom:"))
-      setInvoiceEmail(customer.invoiceEmail || "")
-      if (customer.invoicingTerms.startsWith("Custom:")) {
-        setCustomTerms(customer.invoicingTerms.replace("Custom: ", ""))
+      const customer = customerDetails[customerId]
+      if (customer) {
+        setInvoiceTerms(customer.invoicingTerms)
+        setInvoiceTrigger(customer.invoiceTrigger || "automatic")
+        setDaysAfterShipment(customer.daysAfterShipment || 7)
+        setConsolidationType(customer.consolidationType || "monthly")
+        setShowCustomTerms(customer.invoicingTerms.startsWith("Custom:"))
+        setInvoiceEmail(customer.invoiceEmail || "")
+        if (customer.invoicingTerms.startsWith("Custom:")) {
+          setCustomTerms(customer.invoicingTerms.replace("Custom: ", ""))
+        }
       }
     }
   }
@@ -205,6 +439,7 @@ export default function CustomerManagement({
   const handleBackToList = () => {
     setSelectedCustomerId(null)
     setIsEditingInvoice(false)
+    setActiveTab("overview")
   }
 
   const handleInvoiceTermsChange = (value: string) => {
@@ -214,8 +449,30 @@ export default function CustomerManagement({
 
   const handleSaveInvoiceSettings = () => {
     setIsEditingInvoice(false)
-    // In a real application, you would save these changes to the backend
   }
+
+  const handleAddNote = () => {
+    if (!newNoteText.trim() || !selectedCustomerId) return
+    const newNote = {
+      id: `n-${Date.now()}`,
+      date: new Date().toISOString(),
+      author: "Current User",
+      content: newNoteText.trim(),
+    }
+    setCustomerNotes((prev) => ({
+      ...prev,
+      [selectedCustomerId]: [newNote, ...(prev[selectedCustomerId] || [])],
+    }))
+    setNewNoteText("")
+  }
+
+  // Filter customers
+  const filteredCustomers = customers.filter((c) => {
+    const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesTier = filterTier === "all" || c.tier === filterTier
+    const matchesStatus = filterStatus === "all" || c.status === filterStatus
+    return matchesSearch && matchesTier && matchesStatus
+  })
 
   const renderInvoiceTriggerOptions = () => {
     switch (invoiceTrigger) {
@@ -254,396 +511,727 @@ export default function CustomerManagement({
     }
   }
 
-  return (
-    <div className="flex h-screen flex-col">
-      <Header />
-      <div className="flex flex-1 overflow-hidden">
-        <LeftMenu
-          activePage="customers"
-          onNavigate={(page) => {
-            switch (page) {
-              case "control-panel":
-                onControlPanelClick()
-                break
-              case "performance":
-                onPerformanceClick()
-                break
-              case "customers":
-                onCustomersClick()
-                break
-              case "estimates":
-                onBackClick()
-                break
-              case "orders":
-                onOrderClick()
-                break
-              case "scheduling":
-                onSchedulingClick()
-                break
-              case "production-tracker":
-                onProductionTrackerClick()
-                break
-              case "production-stations":
-                onProductionStationsClick()
-                break
-              case "logistics-analytics":
-                onLogisticsAnalyticsClick()
-                break
-              case "shipments":
-                onShipmentsClick()
-                break
-              case "inventory":
-                onInventoryClick()
-                break
-              case "allocation":
-                onInventoryAllocationClick()
-                break
-            }
-          }}
-        />
+  const getOrderStatusBadge = (status: string) => {
+    switch (status) {
+      case "Delivered":
+        return <Badge className="bg-[#cdfee1] text-[#0c5132] hover:bg-[#cdfee1]">{status}</Badge>
+      case "Shipped":
+        return <Badge className="bg-[#eaf4ff] text-[#00527c] hover:bg-[#eaf4ff]">{status}</Badge>
+      case "In Production":
+        return <Badge className="bg-[#ffe4c6] text-[#5e4200] hover:bg-[#ffe4c6]">{status}</Badge>
+      case "Awaiting Approval":
+        return <Badge className="bg-[#fff4d7] text-[#463710] hover:bg-[#fff4d7]">{status}</Badge>
+      default:
+        return <Badge className="bg-[#e6e6e6] text-[#383838] hover:bg-[#e6e6e6]">{status}</Badge>
+    }
+  }
 
-        {!selectedCustomerId ? (
-          // Customer List View
-          <div className="flex-1 overflow-auto p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h1 className="text-2xl font-bold">Customers</h1>
-              <Button className="bg-black hover:bg-neutral-90 text-white">Create customer</Button>
+  const getInvoiceStatusBadge = (status: string) => {
+    switch (status) {
+      case "Paid":
+        return <Badge className="bg-[#cdfee1] text-[#0c5132] hover:bg-[#cdfee1]">{status}</Badge>
+      case "Sent":
+        return <Badge className="bg-[#eaf4ff] text-[#00527c] hover:bg-[#eaf4ff]">{status}</Badge>
+      case "Overdue":
+        return <Badge className="bg-[#fedad9] text-[#8e1f0b] hover:bg-[#fedad9]">{status}</Badge>
+      case "Draft":
+        return <Badge className="bg-[#e6e6e6] text-[#383838] hover:bg-[#e6e6e6]">{status}</Badge>
+      default:
+        return <Badge className="bg-[#e6e6e6] text-[#383838] hover:bg-[#e6e6e6]">{status}</Badge>
+    }
+  }
+
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case "order":
+        return <div className="w-8 h-8 rounded-full bg-[#eaf4ff] flex items-center justify-center"><FileText className="h-4 w-4 text-[#007cb4]" /></div>
+      case "invoice":
+        return <div className="w-8 h-8 rounded-full bg-[#cdfee1] flex items-center justify-center"><FileText className="h-4 w-4 text-[#29845a]" /></div>
+      case "proof":
+        return <div className="w-8 h-8 rounded-full bg-[#f4e8fa] flex items-center justify-center"><FileText className="h-4 w-4 text-[#9c77ac]" /></div>
+      case "support":
+        return <div className="w-8 h-8 rounded-full bg-[#ffe4c6] flex items-center justify-center"><MessageSquare className="h-4 w-4 text-[#956f00]" /></div>
+      case "note":
+        return <div className="w-8 h-8 rounded-full bg-[#e6e6e6] flex items-center justify-center"><FileText className="h-4 w-4 text-[#525252]" /></div>
+      default:
+        return <div className="w-8 h-8 rounded-full bg-[#e6e6e6] flex items-center justify-center"><Clock className="h-4 w-4 text-[#525252]" /></div>
+    }
+  }
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(amount)
+  }
+
+  // Detail view tabs
+  const tabs: { id: DetailTab; label: string }[] = [
+    { id: "overview", label: "Overview" },
+    { id: "orders", label: "Orders" },
+    { id: "invoices", label: "Invoices" },
+    { id: "activity", label: "Activity" },
+    { id: "notes", label: "Notes" },
+  ]
+
+  const customer = selectedCustomerId ? customerDetails[selectedCustomerId] : null
+  const customerRecord = selectedCustomerId ? customers.find((c) => c.id === selectedCustomerId) : null
+
+  return (
+    <>
+      {!selectedCustomerId ? (
+        // Customer List View
+        <div className="flex-1 overflow-auto p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-semibold" style={{ color: "#212121", letterSpacing: "0.32px" }}>Customers</h1>
+            <Button
+              className="bg-[#212121] hover:opacity-90 text-white rounded-full border-2 border-transparent"
+              onClick={() => setShowAddCustomerModal(true)}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Customer
+            </Button>
+          </div>
+
+          {/* Search and Filters */}
+          <div className="flex gap-3 mb-4">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: "#999999" }} />
+              <Input
+                placeholder="Search customers..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+                style={{ borderRadius: "8px" }}
+              />
             </div>
-            <div className="bg-white rounded-md shadow">
-              <div className="grid grid-cols-2 p-4 font-medium border-b">
-                <div>Company name</div>
-                <div className="text-right">Status</div>
-              </div>
-              {customers.map((customer) => (
-                <div
-                  key={customer.id}
-                  className="grid grid-cols-2 p-4 border-b hover:bg-neutral-5 cursor-pointer"
-                  onClick={() => handleCustomerClick(customer.id)}
-                >
-                  <div>{customer.name}</div>
-                  <div className="text-right">
-                    <Badge
-                      className={`${
-                        customer.status === "Active" ? "bg-success-10 text-success-90" : "bg-neutral-5 text-neutral-90"
-                      }`}
-                    >
-                      {customer.status}
+            <Select value={filterTier} onValueChange={setFilterTier}>
+              <SelectTrigger className="w-[160px]" style={{ borderRadius: "8px" }}>
+                <SelectValue placeholder="All Tiers" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Tiers</SelectItem>
+                <SelectItem value="Standard">Standard</SelectItem>
+                <SelectItem value="Silver">Silver</SelectItem>
+                <SelectItem value="Gold">Gold</SelectItem>
+                <SelectItem value="Platinum">Platinum</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="w-[160px]" style={{ borderRadius: "8px" }}>
+                <SelectValue placeholder="All Statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="Active">Active</SelectItem>
+                <SelectItem value="Inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Customer Table */}
+          <div className="bg-white rounded-lg border" style={{ borderColor: "#e6e6e6", borderRadius: "8px", overflow: "hidden" }}>
+            <table className="w-full">
+              <thead>
+                <tr style={{ borderBottom: "1px solid #e6e6e6" }}>
+                  <th className="text-left p-3 font-medium text-sm" style={{ background: "#f7f7f7", color: "#6b6b6b" }}>Company Name</th>
+                  <th className="text-left p-3 font-medium text-sm" style={{ background: "#f7f7f7", color: "#6b6b6b" }}>Pricing Tier</th>
+                  <th className="text-left p-3 font-medium text-sm" style={{ background: "#f7f7f7", color: "#6b6b6b" }}>Orders</th>
+                  <th className="text-left p-3 font-medium text-sm" style={{ background: "#f7f7f7", color: "#6b6b6b" }}>Revenue</th>
+                  <th className="text-right p-3 font-medium text-sm" style={{ background: "#f7f7f7", color: "#6b6b6b" }}>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredCustomers.map((cust) => (
+                  <tr
+                    key={cust.id}
+                    className="cursor-pointer transition-colors"
+                    style={{ borderBottom: "1px solid #e6e6e6" }}
+                    onClick={() => handleCustomerClick(cust.id)}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "#f7f7f7")}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                  >
+                    <td className="p-3 text-sm font-medium" style={{ color: "#212121" }}>{cust.name}</td>
+                    <td className="p-3">
+                      <Badge className={`${pricingTiers[cust.tier].color} hover:opacity-90`}>
+                        {cust.tier} {pricingTiers[cust.tier].discount > 0 && `(${pricingTiers[cust.tier].discount}%)`}
+                      </Badge>
+                    </td>
+                    <td className="p-3 text-sm" style={{ color: "#525252" }}>{cust.totalOrders}</td>
+                    <td className="p-3 text-sm" style={{ color: "#525252" }}>{formatCurrency(cust.totalRevenue)}</td>
+                    <td className="p-3 text-right">
+                      <Badge
+                        className={`${
+                          cust.status === "Active" ? "bg-[#cdfee1] text-[#0c5132]" : "bg-[#f7f7f7] text-[#383838]"
+                        } hover:opacity-90`}
+                      >
+                        {cust.status}
+                      </Badge>
+                    </td>
+                  </tr>
+                ))}
+                {filteredCustomers.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="p-8 text-center text-sm" style={{ color: "#999999" }}>
+                      No customers match your search criteria.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : customer ? (
+        // Customer Detail View with Tabs
+        <div className="flex-1 overflow-auto">
+          <div className="p-6">
+            {/* Breadcrumb */}
+            <div className="flex items-center mb-2">
+              <button onClick={handleBackToList} className="flex items-center mr-2 text-sm transition-colors" style={{ color: "#999999" }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "#6b6b6b")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "#999999")}
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Customers
+              </button>
+              <span className="text-sm" style={{ color: "#999999" }}>/ {customer.name}</span>
+            </div>
+
+            {/* Header */}
+            <div className="flex justify-between items-start mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ background: "#f2f2f2" }}>
+                  <Building2 className="h-6 w-6" style={{ color: "#525252" }} />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-semibold" style={{ color: "#212121", letterSpacing: "0.32px" }}>{customer.name}</h1>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge className={`${pricingTiers[customer.tier].color} hover:opacity-90`}>
+                      {customer.tier} Tier — {pricingTiers[customer.tier].discount}% Discount
+                    </Badge>
+                    <Badge className={`${customerRecord?.status === "Active" ? "bg-[#cdfee1] text-[#0c5132]" : "bg-[#f7f7f7] text-[#383838]"} hover:opacity-90`}>
+                      {customerRecord?.status}
                     </Badge>
                   </div>
                 </div>
+              </div>
+              <Button className="bg-white text-[#383838] border-2 border-[#bdbdbd] hover:bg-[#f7f7f7] rounded-full">Edit Customer</Button>
+            </div>
+
+            {/* GNX-style Tabs */}
+            <div className="flex" style={{ borderBottom: "1px solid #e6e6e6", gap: 0 }}>
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className="relative px-4 py-2 text-sm transition-colors"
+                  style={{
+                    color: activeTab === tab.id ? "#212121" : "#8a8a8a",
+                    fontWeight: activeTab === tab.id ? 500 : 400,
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
+                >
+                  {tab.label}
+                  {activeTab === tab.id && (
+                    <span
+                      className="absolute bottom-0 left-0 right-0"
+                      style={{ height: "4px", background: "#000", borderRadius: "2px 2px 0 0" }}
+                    />
+                  )}
+                </button>
               ))}
             </div>
-          </div>
-        ) : (
-          // Customer Detail View
-          <div className="flex-1 overflow-auto">
-            <div className="p-6">
-              <div className="flex items-center mb-2">
-                <button onClick={handleBackToList} className="text-neutral-50 hover:text-neutral-70 flex items-center mr-2">
-                  <ChevronLeft className="h-4 w-4 mr-1" />
-                  Customers
-                </button>
-                <span className="text-neutral-50">/ Edit customer</span>
-              </div>
 
-              <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold">
-                  {customerDetails[selectedCustomerId as keyof typeof customerDetails]?.name || "Customer"}
-                </h1>
-                <Button className="bg-white text-black border border-neutral-30 hover:bg-neutral-5">Edit customer</Button>
-              </div>
-
-              <div className="mb-6">
-                <h2 className="text-sm font-medium text-neutral-50 mb-2">Preferred currency</h2>
-                <div className="border rounded-md p-3 bg-white">
-                  {customerDetails[selectedCustomerId as keyof typeof customerDetails]?.currency}
-                </div>
-              </div>
-
-              <div className="border-b mb-6">
-                <div className="flex">
-                  <button className="px-4 py-2 font-medium text-neutral-50">Integration</button>
-                  <button className="px-4 py-2 font-medium text-neutral-50">Logistic</button>
-                  <button className="px-4 py-2 font-medium border-b-2 border-black">Jobs and estimation</button>
-                </div>
-              </div>
-
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h2 className="text-sm font-medium text-neutral-50 mb-2">Enable estimation process for this user?</h2>
-                    <div className="border rounded-md p-3 bg-white">
-                      {customerDetails[selectedCustomerId as keyof typeof customerDetails]?.estimationEnabled}
-                    </div>
-                  </div>
-                  <div>
-                    <h2 className="text-sm font-medium text-neutral-50 mb-2">Preferred currency</h2>
-                    <div className="border rounded-md p-3 bg-white">
-                      {customerDetails[selectedCustomerId as keyof typeof customerDetails]?.currency}
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h2 className="text-base font-medium mb-2">Point of contact</h2>
-                  <p className="text-sm text-neutral-50 mb-4">
-                    Appoint members of your team to be the point of contact who are responsible to the success of this
-                    client
-                  </p>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <h3 className="text-sm font-medium text-neutral-50 mb-2">Sales rep</h3>
-                      <div className="border rounded-md p-3 bg-white">
-                        {customerDetails[selectedCustomerId as keyof typeof customerDetails]?.salesRep}
+            {/* Tab Content */}
+            <div className="mt-6">
+              {/* ===== OVERVIEW TAB ===== */}
+              {activeTab === "overview" && (
+                <div className="space-y-6">
+                  {/* Company Info */}
+                  <div className="border rounded-lg p-5" style={{ borderColor: "#e6e6e6", borderRadius: "8px" }}>
+                    <h3 className="text-base font-medium mb-4" style={{ color: "#212121" }}>Company Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-xs font-medium mb-1" style={{ color: "#8a8a8a", letterSpacing: "0.32px" }}>Address</p>
+                        <p className="text-sm" style={{ color: "#212121" }}>{customer.address}</p>
                       </div>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-neutral-50 mb-2">Customer Success Executive (CSE)</h3>
-                      <div className="border rounded-md p-3 bg-white">
-                        {customerDetails[selectedCustomerId as keyof typeof customerDetails]?.cse}
+                      <div>
+                        <p className="text-xs font-medium mb-1" style={{ color: "#8a8a8a", letterSpacing: "0.32px" }}>Website</p>
+                        <p className="text-sm" style={{ color: "#007cb4" }}>{customer.website}</p>
                       </div>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-neutral-50 mb-2">Estimator</h3>
-                      <div className="border rounded-md p-3 bg-white">
-                        {customerDetails[selectedCustomerId as keyof typeof customerDetails]?.estimator}
+                      <div>
+                        <p className="text-xs font-medium mb-1" style={{ color: "#8a8a8a", letterSpacing: "0.32px" }}>Preferred Currency</p>
+                        <p className="text-sm" style={{ color: "#212121" }}>{customer.currency}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium mb-1" style={{ color: "#8a8a8a", letterSpacing: "0.32px" }}>Estimation Enabled</p>
+                        <p className="text-sm" style={{ color: "#212121" }}>{customer.estimationEnabled}</p>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <h2 className="text-base font-medium">Invoicing Information</h2>
-                    {!isEditingInvoice ? (
-                      <Button
-                        variant="outline"
-                        className="text-info-70 border-blue-600 hover:bg-info-10"
-                        onClick={() => setIsEditingInvoice(true)}
-                      >
-                        Edit invoicing settings
+                  {/* Contacts */}
+                  <div className="border rounded-lg p-5" style={{ borderColor: "#e6e6e6", borderRadius: "8px" }}>
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-base font-medium" style={{ color: "#212121" }}>Contacts</h3>
+                      <Button variant="outline" className="text-[#007cb4] border-[#007cb4] hover:bg-[#eaf4ff] rounded-full text-sm h-8 px-3">
+                        + Add Contact
                       </Button>
-                    ) : (
-                      <Button className="bg-black hover:bg-neutral-90 text-white" onClick={handleSaveInvoiceSettings}>
-                        Save changes
-                      </Button>
-                    )}
-                  </div>
-
-                  {!isEditingInvoice ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                      <div>
-                        <h3 className="text-sm font-medium text-neutral-50 mb-2">Invoicing Terms</h3>
-                        <div className="border rounded-md p-3 bg-white">
-                          {customerDetails[selectedCustomerId as keyof typeof customerDetails]?.invoicingTerms}
-                        </div>
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-medium text-neutral-50 mb-2">Invoice Email</h3>
-                        <div className="border rounded-md p-3 bg-white">
-                          {customerDetails[selectedCustomerId as keyof typeof customerDetails]?.invoiceEmail}
-                        </div>
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-medium text-neutral-50 mb-2">Invoice Trigger</h3>
-                        <div className="border rounded-md p-3 bg-white">
-                          {(() => {
-                            const customer = customerDetails[selectedCustomerId as keyof typeof customerDetails]
-                            switch (customer?.invoiceTrigger) {
-                              case "automatic":
-                                return "Automatic upon shipment"
-                              case "days_after":
-                                return `${customer.daysAfterShipment} days after shipment`
-                              case "consolidated":
-                                return `Consolidated (${customer.consolidationType === "monthly" ? "Monthly" : "Weekly"})`
-                              case "manual":
-                                return "Manual invoicing"
-                              default:
-                                return "Automatic upon shipment"
-                            }
-                          })()}
-                        </div>
-                      </div>
                     </div>
-                  ) : (
-                    <div className="bg-white rounded-md border p-4 mb-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                        <div>
-                          <h3 className="text-sm font-medium text-neutral-50 mb-2">Invoicing Terms</h3>
-                          <div className="flex items-center gap-2">
-                            <Select value={invoiceTerms} onValueChange={handleInvoiceTermsChange}>
-                              <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Select invoice terms" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="Net 15">Net 15</SelectItem>
-                                <SelectItem value="Net 30">Net 30</SelectItem>
-                                <SelectItem value="Net 45">Net 45</SelectItem>
-                                <SelectItem value="Net 60">Net 60</SelectItem>
-                                <SelectItem value="Due Upon Receipt">Due Upon Receipt</SelectItem>
-                                <SelectItem value="custom">Custom Terms</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger>
-                                  <Info className="h-4 w-4 text-neutral-40" />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p className="w-60">
-                                    Select the payment terms for this customer's invoices. This determines when payment
-                                    is due after the invoice date.
-                                  </p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
+                    <div className="space-y-3">
+                      {customer.contacts.map((contact, idx) => (
+                        <div key={idx} className="flex items-center justify-between p-3 rounded-lg" style={{ background: "#f7f7f7" }}>
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: "#e6e6e6" }}>
+                              <User className="h-4 w-4" style={{ color: "#525252" }} />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <p className="text-sm font-medium" style={{ color: "#212121" }}>{contact.name}</p>
+                                {contact.primary && (
+                                  <Badge className="bg-[#eaf4ff] text-[#00527c] hover:bg-[#eaf4ff] text-[10px] px-1.5 py-0">Primary</Badge>
+                                )}
+                              </div>
+                              <p className="text-xs" style={{ color: "#8a8a8a" }}>{contact.role}</p>
+                            </div>
                           </div>
-                          {showCustomTerms && (
-                            <div className="mt-2">
-                              <Input
-                                placeholder="Enter custom terms"
-                                value={customTerms}
-                                onChange={(e) => setCustomTerms(e.target.value)}
-                              />
+                          <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-1 text-xs" style={{ color: "#6b6b6b" }}>
+                              <Mail className="h-3 w-3" />
+                              {contact.email}
                             </div>
-                          )}
+                            <div className="flex items-center gap-1 text-xs" style={{ color: "#6b6b6b" }}>
+                              <Phone className="h-3 w-3" />
+                              {contact.phone}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Pricing Tier */}
+                  <div className="border rounded-lg p-5" style={{ borderColor: "#e6e6e6", borderRadius: "8px" }}>
+                    <h3 className="text-base font-medium mb-4" style={{ color: "#212121" }}>Pricing Tier</h3>
+                    <div className="flex gap-3">
+                      {(Object.keys(pricingTiers) as PricingTier[]).map((tier) => (
+                        <div
+                          key={tier}
+                          className="flex-1 p-4 rounded-lg border-2 transition-all cursor-pointer"
+                          style={{
+                            borderColor: customer.tier === tier ? "#212121" : "#e6e6e6",
+                            background: customer.tier === tier ? "#f7f7f7" : "white",
+                          }}
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-medium" style={{ color: "#212121" }}>{tier}</span>
+                            {customer.tier === tier && <Star className="h-4 w-4" style={{ color: "#212121" }} />}
+                          </div>
+                          <p className="text-2xl font-semibold" style={{ color: "#212121" }}>{pricingTiers[tier].discount}%</p>
+                          <p className="text-xs" style={{ color: "#8a8a8a" }}>Auto-discount</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Payment & Credit */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="border rounded-lg p-5" style={{ borderColor: "#e6e6e6", borderRadius: "8px" }}>
+                      <h3 className="text-base font-medium mb-4" style={{ color: "#212121" }}>Payment Terms & Credit</h3>
+                      <div className="space-y-3">
+                        <div>
+                          <p className="text-xs font-medium mb-1" style={{ color: "#8a8a8a", letterSpacing: "0.32px" }}>Payment Terms</p>
+                          <p className="text-sm" style={{ color: "#212121" }}>{customer.paymentTerms}</p>
                         </div>
                         <div>
-                          <h3 className="text-sm font-medium text-neutral-50 mb-2">Invoice Email</h3>
-                          <Input
-                            value={invoiceEmail}
-                            onChange={(e) => setInvoiceEmail(e.target.value)}
-                            placeholder="Enter invoice email"
-                          />
+                          <p className="text-xs font-medium mb-1" style={{ color: "#8a8a8a", letterSpacing: "0.32px" }}>Credit Limit</p>
+                          <p className="text-sm" style={{ color: "#212121" }}>{formatCurrency(customer.creditLimit)}</p>
                         </div>
-                      </div>
-
-                      <div>
-                        <h3 className="text-sm font-medium text-neutral-50 mb-3">Invoice Trigger Criteria</h3>
-                        <div className="space-y-3">
-                          <RadioGroup value={invoiceTrigger} onValueChange={setInvoiceTrigger}>
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="automatic" id="automatic" />
-                              <Label htmlFor="automatic" className="flex items-center">
-                                Automatic upon shipment
-                                <TooltipProvider>
-                                  <Tooltip>
-                                    <TooltipTrigger>
-                                      <Info className="h-4 w-4 text-neutral-40 ml-1" />
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p className="w-60">
-                                        Invoices are automatically created when an order is marked as shipped.
-                                      </p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
-                              </Label>
-                            </div>
-
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="days_after" id="days_after" />
-                              <Label htmlFor="days_after" className="flex items-center">
-                                X days after shipment
-                                <TooltipProvider>
-                                  <Tooltip>
-                                    <TooltipTrigger>
-                                      <Info className="h-4 w-4 text-neutral-40 ml-1" />
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p className="w-60">
-                                        Invoices are generated a specified number of days after the order is shipped.
-                                      </p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
-                              </Label>
-                            </div>
-
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="consolidated" id="consolidated" />
-                              <Label htmlFor="consolidated" className="flex items-center">
-                                Consolidated invoicing
-                                <TooltipProvider>
-                                  <Tooltip>
-                                    <TooltipTrigger>
-                                      <Info className="h-4 w-4 text-neutral-40 ml-1" />
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p className="w-60">
-                                        Multiple orders are consolidated into a single invoice on a weekly or monthly
-                                        basis.
-                                      </p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
-                              </Label>
-                            </div>
-
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="manual" id="manual" />
-                              <Label htmlFor="manual" className="flex items-center">
-                                Manual invoicing
-                                <TooltipProvider>
-                                  <Tooltip>
-                                    <TooltipTrigger>
-                                      <Info className="h-4 w-4 text-neutral-40 ml-1" />
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p className="w-60">Invoices are created and triggered by a user action.</p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
-                              </Label>
-                            </div>
-                          </RadioGroup>
-
-                          {renderInvoiceTriggerOptions()}
+                        <div>
+                          <p className="text-xs font-medium mb-1" style={{ color: "#8a8a8a", letterSpacing: "0.32px" }}>Invoice Email</p>
+                          <p className="text-sm" style={{ color: "#212121" }}>{customer.invoiceEmail}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium mb-1" style={{ color: "#8a8a8a", letterSpacing: "0.32px" }}>Invoice Trigger</p>
+                          <p className="text-sm" style={{ color: "#212121" }}>
+                            {(() => {
+                              switch (customer.invoiceTrigger) {
+                                case "automatic": return "Automatic upon shipment"
+                                case "days_after": return `${customer.daysAfterShipment} days after shipment`
+                                case "consolidated": return `Consolidated (${customer.consolidationType === "monthly" ? "Monthly" : "Weekly"})`
+                                case "manual": return "Manual invoicing"
+                                default: return "Automatic upon shipment"
+                              }
+                            })()}
+                          </p>
                         </div>
                       </div>
                     </div>
-                  )}
-                </div>
 
+                    {/* Point of Contact */}
+                    <div className="border rounded-lg p-5" style={{ borderColor: "#e6e6e6", borderRadius: "8px" }}>
+                      <h3 className="text-base font-medium mb-4" style={{ color: "#212121" }}>Point of Contact</h3>
+                      <div className="space-y-3">
+                        <div>
+                          <p className="text-xs font-medium mb-1" style={{ color: "#8a8a8a", letterSpacing: "0.32px" }}>Sales Rep</p>
+                          <p className="text-sm" style={{ color: "#212121" }}>{customer.salesRep}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium mb-1" style={{ color: "#8a8a8a", letterSpacing: "0.32px" }}>Customer Success Executive</p>
+                          <p className="text-sm" style={{ color: "#212121" }}>{customer.cse}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium mb-1" style={{ color: "#8a8a8a", letterSpacing: "0.32px" }}>Estimator</p>
+                          <p className="text-sm" style={{ color: "#212121" }}>{customer.estimator}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Notification Preferences */}
+                  <div className="border rounded-lg p-5" style={{ borderColor: "#e6e6e6", borderRadius: "8px" }}>
+                    <h3 className="text-base font-medium mb-4" style={{ color: "#212121" }}>Notification Preferences</h3>
+                    <div className="space-y-3">
+                      {[
+                        { key: "orderUpdates" as const, label: "Order Updates", desc: "Notifications when order status changes" },
+                        { key: "invoiceReminders" as const, label: "Invoice Reminders", desc: "Payment reminders and invoice notifications" },
+                        { key: "proofApprovals" as const, label: "Proof Approvals", desc: "Notifications when proofs are ready for review" },
+                        { key: "marketingEmails" as const, label: "Marketing Emails", desc: "Promotional offers and newsletters" },
+                      ].map((pref) => (
+                        <div key={pref.key} className="flex items-center justify-between py-2">
+                          <div>
+                            <p className="text-sm font-medium" style={{ color: "#212121" }}>{pref.label}</p>
+                            <p className="text-xs" style={{ color: "#8a8a8a" }}>{pref.desc}</p>
+                          </div>
+                          <button
+                            className="relative rounded-full transition-colors"
+                            style={{
+                              width: "42px",
+                              height: "24px",
+                              background: customer.notifications[pref.key] ? "#383838" : "#d4d4d4",
+                            }}
+                          >
+                            <span
+                              className="absolute rounded-full bg-white transition-transform"
+                              style={{
+                                width: "18px",
+                                height: "18px",
+                                top: "3px",
+                                left: "3px",
+                                transform: customer.notifications[pref.key] ? "translateX(18px)" : "translateX(0)",
+                                boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                              }}
+                            />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ===== ORDERS TAB ===== */}
+              {activeTab === "orders" && (
                 <div>
                   <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-base font-medium">Contact list</h2>
-                    <Button variant="outline" className="text-info-70 border-blue-600 hover:bg-info-10">
-                      + Add contact
-                    </Button>
+                    <p className="text-sm" style={{ color: "#8a8a8a" }}>
+                      {(customerOrders[selectedCustomerId] || []).length} orders total
+                    </p>
                   </div>
+                  <div className="border rounded-lg overflow-hidden" style={{ borderColor: "#e6e6e6", borderRadius: "8px" }}>
+                    <table className="w-full">
+                      <thead>
+                        <tr style={{ borderBottom: "1px solid #e6e6e6" }}>
+                          <th className="text-left p-3 font-medium text-xs" style={{ background: "#f7f7f7", color: "#6b6b6b" }}>Order ID</th>
+                          <th className="text-left p-3 font-medium text-xs" style={{ background: "#f7f7f7", color: "#6b6b6b" }}>Date</th>
+                          <th className="text-left p-3 font-medium text-xs" style={{ background: "#f7f7f7", color: "#6b6b6b" }}>Items</th>
+                          <th className="text-left p-3 font-medium text-xs" style={{ background: "#f7f7f7", color: "#6b6b6b" }}>Status</th>
+                          <th className="text-right p-3 font-medium text-xs" style={{ background: "#f7f7f7", color: "#6b6b6b" }}>Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(customerOrders[selectedCustomerId] || []).map((order) => (
+                          <tr
+                            key={order.id}
+                            className="cursor-pointer transition-colors"
+                            style={{ borderBottom: "1px solid #e6e6e6" }}
+                            onClick={() => navigateTo("order-detail", { orderId: order.id })}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = "#f7f7f7")}
+                            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                          >
+                            <td className="p-3 text-sm font-medium" style={{ color: "#007cb4" }}>{order.id}</td>
+                            <td className="p-3 text-sm" style={{ color: "#525252" }}>{order.date}</td>
+                            <td className="p-3 text-sm" style={{ color: "#212121" }}>{order.items}</td>
+                            <td className="p-3">{getOrderStatusBadge(order.status)}</td>
+                            <td className="p-3 text-sm text-right" style={{ color: "#212121" }}>{formatCurrency(order.amount)}</td>
+                          </tr>
+                        ))}
+                        {(customerOrders[selectedCustomerId] || []).length === 0 && (
+                          <tr>
+                            <td colSpan={5} className="p-8 text-center text-sm" style={{ color: "#999999" }}>
+                              No orders found for this customer.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
 
-                  <div className="bg-white rounded-md border overflow-hidden">
-                    <div className="grid grid-cols-3 p-4 font-medium border-b">
-                      <div>Name</div>
-                      <div>Email</div>
-                      <div>Phone number</div>
-                    </div>
+              {/* ===== INVOICES TAB ===== */}
+              {activeTab === "invoices" && (
+                <div>
+                  <div className="flex justify-between items-center mb-4">
+                    <p className="text-sm" style={{ color: "#8a8a8a" }}>
+                      {(customerInvoices[selectedCustomerId] || []).length} invoices total
+                    </p>
+                  </div>
+                  <div className="border rounded-lg overflow-hidden" style={{ borderColor: "#e6e6e6", borderRadius: "8px" }}>
+                    <table className="w-full">
+                      <thead>
+                        <tr style={{ borderBottom: "1px solid #e6e6e6" }}>
+                          <th className="text-left p-3 font-medium text-xs" style={{ background: "#f7f7f7", color: "#6b6b6b" }}>Invoice ID</th>
+                          <th className="text-left p-3 font-medium text-xs" style={{ background: "#f7f7f7", color: "#6b6b6b" }}>Date</th>
+                          <th className="text-left p-3 font-medium text-xs" style={{ background: "#f7f7f7", color: "#6b6b6b" }}>Due Date</th>
+                          <th className="text-left p-3 font-medium text-xs" style={{ background: "#f7f7f7", color: "#6b6b6b" }}>Order</th>
+                          <th className="text-left p-3 font-medium text-xs" style={{ background: "#f7f7f7", color: "#6b6b6b" }}>Status</th>
+                          <th className="text-right p-3 font-medium text-xs" style={{ background: "#f7f7f7", color: "#6b6b6b" }}>Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(customerInvoices[selectedCustomerId] || []).map((inv) => (
+                          <tr
+                            key={inv.id}
+                            className="cursor-pointer transition-colors"
+                            style={{ borderBottom: "1px solid #e6e6e6" }}
+                            onClick={() => navigateTo("invoice-detail", { invoiceId: inv.id })}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = "#f7f7f7")}
+                            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                          >
+                            <td className="p-3 text-sm font-medium" style={{ color: "#007cb4" }}>{inv.id}</td>
+                            <td className="p-3 text-sm" style={{ color: "#525252" }}>{inv.date}</td>
+                            <td className="p-3 text-sm" style={{ color: "#525252" }}>{inv.dueDate}</td>
+                            <td className="p-3 text-sm" style={{ color: "#007cb4" }}>{inv.orderId}</td>
+                            <td className="p-3">{getInvoiceStatusBadge(inv.status)}</td>
+                            <td className="p-3 text-sm text-right" style={{ color: "#212121" }}>{formatCurrency(inv.amount)}</td>
+                          </tr>
+                        ))}
+                        {(customerInvoices[selectedCustomerId] || []).length === 0 && (
+                          <tr>
+                            <td colSpan={6} className="p-8 text-center text-sm" style={{ color: "#999999" }}>
+                              No invoices found for this customer.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
 
-                    {customerDetails[selectedCustomerId as keyof typeof customerDetails]?.contacts.map(
-                      (contact, index) => (
-                        <div key={index} className="grid grid-cols-3 p-4 border-b">
-                          <div>{contact.name}</div>
-                          <div>{contact.email}</div>
-                          <div className="flex justify-between">
-                            <span>{contact.phone}</span>
-                            {contact.primary ? (
-                              <span className="text-neutral-50">Primary contact</span>
-                            ) : (
-                              <button className="text-info-70">Mark as primary contact</button>
+              {/* ===== ACTIVITY TAB ===== */}
+              {activeTab === "activity" && (
+                <div>
+                  <p className="text-sm mb-4" style={{ color: "#8a8a8a" }}>
+                    Recent activity and interactions
+                  </p>
+                  <div className="space-y-0">
+                    {(customerActivities[selectedCustomerId] || []).map((activity, idx) => {
+                      const activities = customerActivities[selectedCustomerId] || []
+                      const isLast = idx === activities.length - 1
+                      return (
+                        <div key={idx} className="flex gap-3">
+                          {/* Timeline line + icon */}
+                          <div className="flex flex-col items-center">
+                            {getActivityIcon(activity.type)}
+                            {!isLast && (
+                              <div className="w-px flex-1 min-h-[24px]" style={{ background: "#e6e6e6" }} />
                             )}
                           </div>
+                          {/* Content */}
+                          <div className="pb-5 flex-1">
+                            <p className="text-sm" style={{ color: "#212121" }}>{activity.description}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-xs" style={{ color: "#8a8a8a" }}>{activity.date} at {activity.time}</span>
+                              <span className="text-xs" style={{ color: "#bdbdbd" }}>|</span>
+                              <span className="text-xs" style={{ color: "#8a8a8a" }}>{activity.user}</span>
+                            </div>
+                          </div>
                         </div>
-                      ),
+                      )
+                    })}
+                    {(customerActivities[selectedCustomerId] || []).length === 0 && (
+                      <p className="text-sm text-center py-8" style={{ color: "#999999" }}>No activity recorded yet.</p>
                     )}
                   </div>
+                </div>
+              )}
+
+              {/* ===== NOTES TAB ===== */}
+              {activeTab === "notes" && (
+                <div>
+                  {/* Add Note Form */}
+                  <div className="border rounded-lg p-4 mb-6" style={{ borderColor: "#e6e6e6", borderRadius: "8px" }}>
+                    <h3 className="text-sm font-medium mb-2" style={{ color: "#212121" }}>Add a note</h3>
+                    <textarea
+                      value={newNoteText}
+                      onChange={(e) => setNewNoteText(e.target.value)}
+                      placeholder="Write an internal note about this customer..."
+                      rows={3}
+                      className="w-full p-3 text-sm resize-vertical transition-shadow"
+                      style={{
+                        borderRadius: "8px",
+                        border: "none",
+                        boxShadow: "inset 0 0 0 1px #999999",
+                        outline: "none",
+                        fontFamily: "inherit",
+                        minHeight: "80px",
+                      }}
+                      onFocus={(e) => (e.currentTarget.style.boxShadow = "inset 0 0 0 1px #383838")}
+                      onBlur={(e) => (e.currentTarget.style.boxShadow = "inset 0 0 0 1px #999999")}
+                    />
+                    <div className="flex justify-end mt-3">
+                      <Button
+                        onClick={handleAddNote}
+                        disabled={!newNoteText.trim()}
+                        className="bg-[#212121] hover:opacity-90 text-white rounded-full border-2 border-transparent disabled:opacity-40"
+                      >
+                        Save Note
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Existing Notes */}
+                  <div className="space-y-3">
+                    {(customerNotes[selectedCustomerId] || []).map((note) => (
+                      <div key={note.id} className="border rounded-lg p-4" style={{ borderColor: "#e6e6e6", borderRadius: "8px" }}>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: "#e6e6e6" }}>
+                              <User className="h-3 w-3" style={{ color: "#525252" }} />
+                            </div>
+                            <span className="text-sm font-medium" style={{ color: "#212121" }}>{note.author}</span>
+                          </div>
+                          <span className="text-xs" style={{ color: "#8a8a8a" }}>
+                            {new Date(note.date).toLocaleDateString("en-US", {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                        </div>
+                        <p className="text-sm" style={{ color: "#525252" }}>{note.content}</p>
+                      </div>
+                    ))}
+                    {(customerNotes[selectedCustomerId] || []).length === 0 && (
+                      <p className="text-sm text-center py-8" style={{ color: "#999999" }}>No notes yet. Add the first note above.</p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Add Customer Modal */}
+      {showAddCustomerModal && (
+        <div
+          className="fixed inset-0 flex items-center justify-center"
+          style={{ background: "rgba(33, 33, 33, 0.8)", zIndex: 20001 }}
+          onClick={() => setShowAddCustomerModal(false)}
+        >
+          <div
+            className="bg-white w-full max-w-lg"
+            style={{ borderRadius: "12px", padding: "20px", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center mb-5">
+              <h2 className="text-lg font-semibold" style={{ color: "#212121" }}>Add New Customer</h2>
+              <button onClick={() => setShowAddCustomerModal(false)} style={{ color: "#8a8a8a" }} className="hover:opacity-70">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs font-medium mb-1 block" style={{ color: "#383838", letterSpacing: "0.32px" }}>Company Name *</label>
+                <Input placeholder="Enter company name" style={{ borderRadius: "8px" }} />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-medium mb-1 block" style={{ color: "#383838", letterSpacing: "0.32px" }}>Contact Name *</label>
+                  <Input placeholder="Primary contact name" style={{ borderRadius: "8px" }} />
+                </div>
+                <div>
+                  <label className="text-xs font-medium mb-1 block" style={{ color: "#383838", letterSpacing: "0.32px" }}>Contact Email *</label>
+                  <Input placeholder="email@company.com" type="email" style={{ borderRadius: "8px" }} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-medium mb-1 block" style={{ color: "#383838", letterSpacing: "0.32px" }}>Phone Number</label>
+                  <Input placeholder="+1 555 000 0000" style={{ borderRadius: "8px" }} />
+                </div>
+                <div>
+                  <label className="text-xs font-medium mb-1 block" style={{ color: "#383838", letterSpacing: "0.32px" }}>Pricing Tier</label>
+                  <Select defaultValue="Standard">
+                    <SelectTrigger style={{ borderRadius: "8px" }}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Standard">Standard (0%)</SelectItem>
+                      <SelectItem value="Silver">Silver (5%)</SelectItem>
+                      <SelectItem value="Gold">Gold (10%)</SelectItem>
+                      <SelectItem value="Platinum">Platinum (15%)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-medium mb-1 block" style={{ color: "#383838", letterSpacing: "0.32px" }}>Address</label>
+                <Input placeholder="Company address" style={{ borderRadius: "8px" }} />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-medium mb-1 block" style={{ color: "#383838", letterSpacing: "0.32px" }}>Payment Terms</label>
+                  <Select defaultValue="Net 30">
+                    <SelectTrigger style={{ borderRadius: "8px" }}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Net 15">Net 15</SelectItem>
+                      <SelectItem value="Net 30">Net 30</SelectItem>
+                      <SelectItem value="Net 45">Net 45</SelectItem>
+                      <SelectItem value="Net 60">Net 60</SelectItem>
+                      <SelectItem value="Due Upon Receipt">Due Upon Receipt</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-xs font-medium mb-1 block" style={{ color: "#383838", letterSpacing: "0.32px" }}>Credit Limit</label>
+                  <Input placeholder="$0.00" type="number" style={{ borderRadius: "8px" }} />
                 </div>
               </div>
             </div>
+
+            <div className="flex justify-between pt-5 mt-5" style={{ borderTop: "1px solid #e6e6e6" }}>
+              <Button
+                variant="outline"
+                className="rounded-full border-2 border-[#bdbdbd] text-[#383838] hover:bg-[#f7f7f7]"
+                onClick={() => setShowAddCustomerModal(false)}
+              >
+                Cancel
+              </Button>
+              <Button className="bg-[#212121] hover:opacity-90 text-white rounded-full border-2 border-transparent">
+                Create Customer
+              </Button>
+            </div>
           </div>
-        )}
-      </div>
-    </div>
+        </div>
+      )}
+    </>
   )
 }

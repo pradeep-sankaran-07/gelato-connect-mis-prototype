@@ -1,601 +1,917 @@
 "use client"
 
 import type React from "react"
-
-import { useState, useRef } from "react"
+import { useState } from "react"
 import {
   ArrowLeft,
-  X,
-  Plus,
-  Minus,
   ChevronDown,
-  ChevronUp,
-  Upload,
-  Download,
-  Paperclip,
-  Trash2,
-  FileSpreadsheet,
+  ChevronRight,
   Send,
+  Sparkles,
+  FileText,
+  Bot,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
+import { useNavigation } from "@/lib/navigation-context"
 
-export default function CreateEstimate({ onBackClick }: { onBackClick: () => void }) {
-  const [products, setProducts] = useState([
-    { id: 1, name: "Product 1", isExpanded: true, category: "", quantities: [{ quantity: 1000, price: 0 }] },
+interface ChatMessage {
+  id: number
+  role: "ai" | "user"
+  content: string
+  timestamp: string
+}
+
+interface FormSection {
+  id: string
+  title: string
+  isOpen: boolean
+}
+
+export default function CreateEstimate() {
+  const { goBack, navigateTo } = useNavigation()
+
+  const [chatMessages] = useState<ChatMessage[]>([
+    {
+      id: 1,
+      role: "ai",
+      content: "Hi! I'm ConnectAI. I can help you create an estimate quickly. Describe the product you'd like to quote, or paste an email from your customer and I'll extract the details.",
+      timestamp: "Just now",
+    },
+    {
+      id: 2,
+      role: "user",
+      content: "Customer needs 5000 copies of an A4 brochure, 200gsm gloss, full color both sides with tri-fold finishing. Delivery to Munich by March 28.",
+      timestamp: "Just now",
+    },
+    {
+      id: 3,
+      role: "ai",
+      content: "I've extracted the following specifications from your message:\n\n- Quantity: 5,000 copies\n- Product: Brochure\n- Size: A4 Portrait\n- Paper: 200gsm Gloss\n- Color: Full color (4/4)\n- Finishing: Tri-fold\n- Delivery: Munich, March 28\n\nI've pre-filled the form on the right. Would you like me to calculate pricing based on your rate card?",
+      timestamp: "Just now",
+    },
   ])
-  const [activeTab, setActiveTab] = useState("manual")
-  const [showQuantityTable, setShowQuantityTable] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const addProduct = () => {
-    const newId = products.length > 0 ? Math.max(...products.map((p) => p.id)) + 1 : 1
-    setProducts([
-      ...products,
-      {
-        id: newId,
-        name: `Product ${newId}`,
-        isExpanded: true,
-        category: "",
-        quantities: [{ quantity: 1000, price: 0 }],
-      },
-    ])
+  const [chatInput, setChatInput] = useState("")
+
+  const [sections, setSections] = useState<FormSection[]>([
+    { id: "basic", title: "Basic Details", isOpen: true },
+    { id: "product", title: "Product Description", isOpen: true },
+    { id: "inner", title: "Inner Specs", isOpen: true },
+    { id: "finishing", title: "Finishing", isOpen: true },
+    { id: "pricing", title: "Pricing", isOpen: true },
+    { id: "delivery", title: "Delivery", isOpen: false },
+    { id: "notes", title: "Notes", isOpen: false },
+  ])
+
+  const toggleSection = (id: string) => {
+    setSections(sections.map((s) => (s.id === id ? { ...s, isOpen: !s.isOpen } : s)))
   }
 
-  const removeProduct = (id: number) => {
-    if (products.length > 1) {
-      setProducts(products.filter((product) => product.id !== id))
-    }
+  const handleSendChat = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!chatInput.trim()) return
+    setChatInput("")
   }
 
-  const toggleProductExpansion = (id: number) => {
-    setProducts(
-      products.map((product) => (product.id === id ? { ...product, isExpanded: !product.isExpanded } : product)),
-    )
-  }
-
-  const updateProductName = (id: number, name: string) => {
-    setProducts(products.map((product) => (product.id === id ? { ...product, name } : product)))
-  }
-
-  const updateProductCategory = (id: number, category: string) => {
-    setProducts(products.map((product) => (product.id === id ? { ...product, category } : product)))
-  }
-
-  const addQuantityRow = (productId: number) => {
-    setProducts(
-      products.map((product) => {
-        if (product.id === productId) {
-          const lastQuantity = product.quantities[product.quantities.length - 1]?.quantity || 0
-          return {
-            ...product,
-            quantities: [...product.quantities, { quantity: lastQuantity + 1000, price: 0 }],
-          }
-        }
-        return product
-      }),
-    )
-  }
-
-  const removeQuantityRow = (productId: number, index: number) => {
-    if (index === 0) return // Don't remove the first row
-
-    setProducts(
-      products.map((product) => {
-        if (product.id === productId) {
-          const newQuantities = [...product.quantities]
-          newQuantities.splice(index, 1)
-          return { ...product, quantities: newQuantities }
-        }
-        return product
-      }),
-    )
-  }
-
-  const updateQuantity = (productId: number, index: number, quantity: number) => {
-    setProducts(
-      products.map((product) => {
-        if (product.id === productId) {
-          const newQuantities = [...product.quantities]
-          newQuantities[index] = { ...newQuantities[index], quantity }
-          return { ...product, quantities: newQuantities }
-        }
-        return product
-      }),
-    )
-  }
-
-  const updatePrice = (productId: number, index: number, price: number) => {
-    setProducts(
-      products.map((product) => {
-        if (product.id === productId) {
-          const newQuantities = [...product.quantities]
-          newQuantities[index] = { ...newQuantities[index], price }
-          return { ...product, quantities: newQuantities }
-        }
-        return product
-      }),
-    )
-  }
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      // In a real implementation, this would parse the Excel file
-      // For demo purposes, we'll simulate loading products from Excel
-      setProducts([
-        {
-          id: 1,
-          name: "Business Cards",
-          isExpanded: true,
-          category: "Business Cards",
-          quantities: [
-            { quantity: 250, price: 45 },
-            { quantity: 500, price: 65 },
-            { quantity: 1000, price: 95 },
-          ],
-        },
-        {
-          id: 2,
-          name: "Brochures",
-          isExpanded: true,
-          category: "Brochure",
-          quantities: [
-            { quantity: 500, price: 350 },
-            { quantity: 1000, price: 550 },
-            { quantity: 2500, price: 1200 },
-          ],
-        },
-      ])
-      setActiveTab("manual")
-      setShowQuantityTable(true)
-    }
-  }
-
-  const triggerFileUpload = () => {
-    fileInputRef.current?.click()
-  }
-
-  const handleExportExcel = () => {
-    // In a real implementation, this would generate and download an Excel file
-    // For demo purposes, we'll just show an alert
-    alert("Exporting estimates to Excel file...")
+  const handleBack = () => {
+    goBack()
   }
 
   return (
-    <div className="h-screen flex flex-col">
-      <div className="bg-white p-4 flex items-center border-b">
-        <Button variant="ghost" size="sm" className="mr-2" onClick={onBackClick}>
-          <ArrowLeft className="h-4 w-4 mr-1" />
-          Go back to Manage Estimates
-        </Button>
+    <div className="h-screen flex flex-col overflow-hidden" style={{ background: "#F7F7F7" }}>
+      {/* Header Bar */}
+      <div
+        className="flex items-center justify-between px-6 shrink-0"
+        style={{
+          height: 56,
+          background: "#FFFFFF",
+          borderBottom: "1px solid #E6E6E6",
+        }}
+      >
+        {/* Left: Back button */}
+        <button
+          onClick={handleBack}
+          className="flex items-center gap-2 text-sm font-medium hover:opacity-70 transition-opacity"
+          style={{ color: "#383838", background: "transparent", border: "none", cursor: "pointer" }}
+        >
+          <ArrowLeft className="h-4 w-4" />
+          <span>Back to Estimates</span>
+        </button>
 
-        <div className="ml-auto flex items-center gap-2">
-          <Button variant="outline" size="sm">
-            ConnectAI
-          </Button>
-          <Button variant="outline" size="sm">
-            Cancel
-          </Button>
-          <Button variant="outline" size="sm">
-            Save as draft
-          </Button>
-          <Button variant="outline" size="sm">
+        {/* Center: Title */}
+        <div
+          className="absolute left-1/2 -translate-x-1/2 text-sm font-medium"
+          style={{ color: "#212121" }}
+        >
+          New Estimate
+        </div>
+
+        {/* Right: Actions */}
+        <div className="flex items-center gap-2">
+          <button
+            className="flex items-center justify-center px-4 text-sm font-medium transition-all"
+            style={{
+              height: 36,
+              background: "#FFFFFF",
+              color: "#383838",
+              border: "2px solid #BDBDBD",
+              borderRadius: 999,
+              cursor: "pointer",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "#F7F7F7")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "#FFFFFF")}
+          >
+            Save Draft
+          </button>
+          <button
+            className="flex items-center justify-center px-4 text-sm font-medium transition-all"
+            style={{
+              height: 36,
+              background: "#FFFFFF",
+              color: "#383838",
+              border: "2px solid #BDBDBD",
+              borderRadius: 999,
+              cursor: "pointer",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "#F7F7F7")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "#FFFFFF")}
+          >
+            <FileText className="h-4 w-4 mr-2" />
             View PDF
-          </Button>
+          </button>
+          <button
+            className="flex items-center justify-center px-4 text-sm font-medium transition-all"
+            style={{
+              height: 36,
+              background: "#212121",
+              color: "#FFFFFF",
+              border: "2px solid transparent",
+              borderRadius: 999,
+              cursor: "pointer",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.9")}
+            onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+          >
+            Convert to Order
+          </button>
         </div>
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
-        <div className="flex-1 p-6 overflow-y-auto">
-          <h2 className="text-xl font-bold mb-6">Create a new estimate</h2>
-
-          <div className="border rounded-md mb-6">
-            <div className="flex items-center justify-between p-4 border-b bg-neutral-5">
-              <h3 className="font-medium">Basic details</h3>
-              <Button variant="ghost" size="sm">
-                <ChevronUp className="h-5 w-5" />
-              </Button>
+      {/* Two-panel layout */}
+      <div className="flex flex-1 overflow-hidden gap-4 p-4">
+        {/* Left Panel: AI Agent Chat */}
+        <div
+          className="flex flex-col overflow-hidden shrink-0"
+          style={{
+            width: "33%",
+            minWidth: 400,
+            background: "#FFFFFF",
+            borderRadius: 16,
+            border: "1px solid #E6E6E6",
+          }}
+        >
+          {/* ConnectAI branding header */}
+          <div
+            className="flex items-center gap-3 px-5 shrink-0"
+            style={{
+              height: 56,
+              borderBottom: "1px solid #E6E6E6",
+            }}
+          >
+            <div
+              className="flex items-center justify-center"
+              style={{
+                width: 32,
+                height: 32,
+                background: "#F4E8FA",
+                borderRadius: 8,
+              }}
+            >
+              <Sparkles className="h-4 w-4" style={{ color: "#9C77AC" }} />
             </div>
-
-            <div className="p-4 space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Job name</label>
-                <Input placeholder="Customer product name" />
+            <div>
+              <div className="text-sm font-medium" style={{ color: "#212121" }}>
+                ConnectAI
               </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Customer</label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select or create a customer" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="printco">PrintCo Ltd</SelectItem>
-                    <SelectItem value="sandbox">Sandbox</SelectItem>
-                    <SelectItem value="athletix">Athletix</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="text-xs" style={{ color: "#8A8A8A" }}>
+                Estimate Assistant
               </div>
             </div>
+            <Badge
+              className="ml-auto text-xs px-2 py-0.5"
+              style={{
+                background: "#CDFEE1",
+                color: "#0C5132",
+                border: "none",
+                borderRadius: 6,
+                fontSize: 11,
+                fontWeight: 500,
+              }}
+            >
+              Online
+            </Badge>
           </div>
 
-          <div className="mb-6">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <div className="flex justify-between items-center mb-4">
-                <TabsList>
-                  <TabsTrigger value="manual">Manual Entry</TabsTrigger>
-                  <TabsTrigger value="excel">Excel Import</TabsTrigger>
-                </TabsList>
-
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" onClick={addProduct}>
-                    <Plus className="h-4 w-4 mr-1" /> Add Product
-                  </Button>
-
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    className="hidden"
-                    accept=".xlsx,.xls,.csv"
-                    onChange={handleFileUpload}
-                  />
-
-                  {activeTab === "excel" && (
-                    <Button variant="outline" size="sm" onClick={triggerFileUpload}>
-                      <Upload className="h-4 w-4 mr-1" /> Upload Excel
-                    </Button>
-                  )}
-                </div>
-              </div>
-
-              <TabsContent value="manual" className="mt-0">
-                {products.map((product, index) => (
-                  <div key={product.id} className="border rounded-md mb-4">
-                    <div className="flex items-center justify-between p-3 border-b bg-neutral-5">
-                      <div className="flex items-center">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => toggleProductExpansion(product.id)}
-                          className="mr-2"
-                        >
-                          {product.isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                        </Button>
-                        <h3 className="font-medium flex items-center">
-                          <span className="mr-2">{product.name}</span>
-                          {index > 0 && (
-                            <Badge variant="outline" className="text-xs">
-                              Additional Product
-                            </Badge>
-                          )}
-                        </h3>
-                      </div>
-                      <div className="flex items-center">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeProduct(product.id)}
-                          disabled={products.length === 1}
-                        >
-                          <Trash2 className="h-4 w-4 text-neutral-50" />
-                        </Button>
-                      </div>
+          {/* Chat messages */}
+          <div className="flex-1 overflow-y-auto p-5 space-y-4">
+            {chatMessages.map((msg) => (
+              <div
+                key={msg.id}
+                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+              >
+                <div
+                  className={`flex gap-2.5 max-w-[90%] ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}
+                >
+                  {msg.role === "ai" && (
+                    <div
+                      className="flex items-center justify-center shrink-0 mt-0.5"
+                      style={{
+                        width: 28,
+                        height: 28,
+                        background: "#F4E8FA",
+                        borderRadius: 8,
+                      }}
+                    >
+                      <Bot className="h-3.5 w-3.5" style={{ color: "#9C77AC" }} />
                     </div>
-
-                    {product.isExpanded && (
-                      <div className="p-4 space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium mb-1">Product Name</label>
-                            <Input
-                              value={product.name}
-                              onChange={(e) => updateProductName(product.id, e.target.value)}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-1">Product Category</label>
-                            <Select
-                              value={product.category}
-                              onValueChange={(value) => updateProductCategory(product.id, value)}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select product category" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="brochure">Brochure</SelectItem>
-                                <SelectItem value="flyer">Flyer</SelectItem>
-                                <SelectItem value="book">Book</SelectItem>
-                                <SelectItem value="businesscard">Business Card</SelectItem>
-                                <SelectItem value="poster">Poster</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-
-                        <div className="border-t pt-4">
-                          <div className="flex items-center justify-between mb-3">
-                            <label className="font-medium text-sm">Specifications</label>
-                            <div className="flex items-center">
-                              <Switch
-                                id={`quantity-table-${product.id}`}
-                                checked={showQuantityTable}
-                                onCheckedChange={setShowQuantityTable}
-                              />
-                              <Label htmlFor={`quantity-table-${product.id}`} className="ml-2 text-sm">
-                                Multi-quantity pricing
-                              </Label>
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-4 mb-4">
-                            <div>
-                              <label className="block text-sm font-medium mb-1">Size</label>
-                              <Select>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select size" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="a4">A4</SelectItem>
-                                  <SelectItem value="a5">A5</SelectItem>
-                                  <SelectItem value="a6">A6</SelectItem>
-                                  <SelectItem value="letter">Letter</SelectItem>
-                                  <SelectItem value="custom">Custom</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium mb-1">Orientation</label>
-                              <Select>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select orientation" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="portrait">Portrait</SelectItem>
-                                  <SelectItem value="landscape">Landscape</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-4 mb-4">
-                            <div>
-                              <label className="block text-sm font-medium mb-1">Paper Type</label>
-                              <Select>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select paper type" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="gloss">Gloss</SelectItem>
-                                  <SelectItem value="matte">Matte</SelectItem>
-                                  <SelectItem value="uncoated">Uncoated</SelectItem>
-                                  <SelectItem value="recycled">Recycled</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium mb-1">Paper Weight</label>
-                              <Select>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select paper weight" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="80">80 gsm</SelectItem>
-                                  <SelectItem value="100">100 gsm</SelectItem>
-                                  <SelectItem value="120">120 gsm</SelectItem>
-                                  <SelectItem value="170">170 gsm</SelectItem>
-                                  <SelectItem value="250">250 gsm</SelectItem>
-                                  <SelectItem value="300">300 gsm</SelectItem>
-                                  <SelectItem value="350">350 gsm</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-4 mb-4">
-                            <div>
-                              <label className="block text-sm font-medium mb-1">Sides</label>
-                              <Select>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select sides" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="single">Single-sided</SelectItem>
-                                  <SelectItem value="double">Double-sided</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium mb-1">Color</label>
-                              <Select>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select color" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="full">Full color</SelectItem>
-                                  <SelectItem value="bw">Black & White</SelectItem>
-                                  <SelectItem value="spot">Spot Color</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-
-                          <div className="border-t pt-4">
-                            <div className="flex items-center justify-between mb-3">
-                              <label className="font-medium text-sm">Pricing</label>
-                              <Button variant="ghost" size="sm" onClick={() => addQuantityRow(product.id)}>
-                                <Plus className="h-4 w-4 mr-1" /> Add Quantity
-                              </Button>
-                            </div>
-
-                            {showQuantityTable ? (
-                              <div className="border rounded-md overflow-hidden">
-                                <table className="w-full">
-                                  <thead>
-                                    <tr className="bg-neutral-5 text-left">
-                                      <th className="px-4 py-2 text-sm font-medium text-neutral-50">Quantity</th>
-                                      <th className="px-4 py-2 text-sm font-medium text-neutral-50">Unit Price</th>
-                                      <th className="px-4 py-2 text-sm font-medium text-neutral-50">Total Price</th>
-                                      <th className="px-4 py-2 text-sm font-medium text-neutral-50 w-10"></th>
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    {product.quantities.map((q, idx) => (
-                                      <tr key={idx} className="border-t">
-                                        <td className="px-4 py-2">
-                                          <Input
-                                            type="number"
-                                            value={q.quantity}
-                                            onChange={(e) =>
-                                              updateQuantity(product.id, idx, Number.parseInt(e.target.value) || 0)
-                                            }
-                                            className="w-full"
-                                          />
-                                        </td>
-                                        <td className="px-4 py-2">
-                                          <Input
-                                            type="number"
-                                            value={q.price}
-                                            onChange={(e) =>
-                                              updatePrice(product.id, idx, Number.parseFloat(e.target.value) || 0)
-                                            }
-                                            className="w-full"
-                                            step="0.01"
-                                          />
-                                        </td>
-                                        <td className="px-4 py-2 text-sm">EUR {(q.quantity * q.price).toFixed(2)}</td>
-                                        <td className="px-4 py-2">
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => removeQuantityRow(product.id, idx)}
-                                            disabled={idx === 0}
-                                          >
-                                            <Minus className="h-4 w-4 text-neutral-50" />
-                                          </Button>
-                                        </td>
-                                      </tr>
-                                    ))}
-                                  </tbody>
-                                </table>
-                              </div>
-                            ) : (
-                              <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                  <label className="block text-sm font-medium mb-1">Quantity</label>
-                                  <Input
-                                    type="number"
-                                    value={product.quantities[0].quantity}
-                                    onChange={(e) =>
-                                      updateQuantity(product.id, 0, Number.parseInt(e.target.value) || 0)
-                                    }
-                                  />
-                                </div>
-                                <div>
-                                  <label className="block text-sm font-medium mb-1">Price</label>
-                                  <Input
-                                    type="number"
-                                    value={product.quantities[0].price}
-                                    onChange={(e) => updatePrice(product.id, 0, Number.parseFloat(e.target.value) || 0)}
-                                    step="0.01"
-                                  />
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </TabsContent>
-
-              <TabsContent value="excel" className="mt-0">
-                <div className="border rounded-md p-6 text-center">
-                  <div className="mx-auto w-16 h-16 bg-neutral-5 rounded-full flex items-center justify-center mb-4">
-                    <FileSpreadsheet className="h-8 w-8 text-neutral-50" />
-                  </div>
-                  <h3 className="text-lg font-medium mb-2">Import from Excel</h3>
-                  <p className="text-neutral-50 mb-6 max-w-md mx-auto">
-                    Upload an Excel file with product specifications to automatically create estimates for multiple
-                    products.
-                  </p>
-                  <div className="flex justify-center gap-4">
-                    <Button onClick={triggerFileUpload}>
-                      <Upload className="h-4 w-4 mr-2" /> Upload Excel File
-                    </Button>
-                    <Button variant="outline">
-                      <Download className="h-4 w-4 mr-2" /> Download Template
-                    </Button>
-                  </div>
-
-                  <div className="mt-8 pt-6 border-t">
-                    <h3 className="text-lg font-medium mb-2">Export to Excel</h3>
-                    <p className="text-neutral-50 mb-6 max-w-md mx-auto">
-                      Export your current estimates to an Excel file for sharing or further editing.
-                    </p>
-                    <Button onClick={handleExportExcel}>
-                      <Download className="h-4 w-4 mr-2" /> Export Estimates to Excel
-                    </Button>
+                  )}
+                  <div
+                    className="px-3.5 py-2.5 text-sm leading-relaxed"
+                    style={{
+                      borderRadius: msg.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
+                      background: msg.role === "user" ? "#212121" : "#F7F7F7",
+                      color: msg.role === "user" ? "#FFFFFF" : "#383838",
+                      whiteSpace: "pre-line",
+                      letterSpacing: "0.16px",
+                    }}
+                  >
+                    {msg.content}
                   </div>
                 </div>
-              </TabsContent>
-            </Tabs>
+              </div>
+            ))}
           </div>
 
-          <div className="border rounded-md mb-6">
-            <div className="flex items-center justify-between p-4 border-b bg-neutral-5">
-              <h3 className="font-medium">Additional Information</h3>
-              <Button variant="ghost" size="sm">
-                <ChevronDown className="h-5 w-5" />
-              </Button>
+          {/* Chat input */}
+          <form
+            onSubmit={handleSendChat}
+            className="shrink-0 px-4 pb-4"
+          >
+            <div
+              className="flex items-center gap-2 px-3"
+              style={{
+                height: 44,
+                borderRadius: 12,
+                border: "1px solid #E6E6E6",
+                background: "#F7F7F7",
+              }}
+            >
+              <input
+                type="text"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                placeholder="Ask ConnectAI..."
+                className="flex-1 bg-transparent border-none outline-none text-sm"
+                style={{ color: "#212121", letterSpacing: "0.16px" }}
+              />
+              <button
+                type="submit"
+                className="flex items-center justify-center shrink-0 transition-opacity hover:opacity-70"
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 8,
+                  background: chatInput.trim() ? "#212121" : "#D4D4D4",
+                  border: "none",
+                  cursor: chatInput.trim() ? "pointer" : "default",
+                }}
+                disabled={!chatInput.trim()}
+              >
+                <Send className="h-3.5 w-3.5" style={{ color: "#FFFFFF" }} />
+              </button>
             </div>
-          </div>
-
-          <div className="flex justify-end gap-3 mt-8">
-            <Button variant="outline">Save Draft</Button>
-            <Button>Generate PDF & Send</Button>
-          </div>
+          </form>
         </div>
 
-        <div className="w-1/3 border-l bg-neutral-5">
-          <div className="p-4 border-b flex items-center justify-between">
-            <div className="flex items-center">
-              <img
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/download%20%2819%29-170UxeV7cg8b7kNjFagZkz9quPldwr.png"
-                alt="GelatoConnect Logo"
-                className="h-6 w-6 mr-2"
-              />
-              <span className="font-medium">ConnectAI</span>
+        {/* Right Panel: Estimate Form */}
+        <div
+          className="flex-1 flex flex-col overflow-hidden"
+          style={{
+            background: "#FFFFFF",
+            borderRadius: 16,
+            border: "1px solid #E6E6E6",
+          }}
+        >
+          {/* Scrollable form content */}
+          <div className="flex-1 overflow-y-auto p-6">
+            <div className="max-w-3xl mx-auto space-y-3">
+              {/* Basic Details Section */}
+              <SectionAccordion
+                title="Basic Details"
+                isOpen={sections.find((s) => s.id === "basic")?.isOpen ?? true}
+                onToggle={() => toggleSection("basic")}
+              >
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField label="Estimate Name">
+                    <Input
+                      placeholder="e.g. Brochure print run Q1"
+                      defaultValue="A4 Brochure — DesignWorks GmbH"
+                      className="h-10"
+                      style={{ borderRadius: 8 }}
+                    />
+                  </FormField>
+                  <FormField label="Customer">
+                    <Select defaultValue="designworks">
+                      <SelectTrigger className="h-10" style={{ borderRadius: 8 }}>
+                        <SelectValue placeholder="Select customer" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="designworks">DesignWorks GmbH</SelectItem>
+                        <SelectItem value="printco">PrintCo Ltd</SelectItem>
+                        <SelectItem value="sandbox">Sandbox</SelectItem>
+                        <SelectItem value="athletix">Athletix</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormField>
+                  <FormField label="Reference Number">
+                    <Input
+                      placeholder="Auto-generated"
+                      defaultValue="EST-2026-0047"
+                      className="h-10"
+                      style={{ borderRadius: 8 }}
+                      readOnly
+                    />
+                  </FormField>
+                  <FormField label="Valid Until">
+                    <Input
+                      type="date"
+                      defaultValue="2026-04-19"
+                      className="h-10"
+                      style={{ borderRadius: 8 }}
+                    />
+                  </FormField>
+                </div>
+              </SectionAccordion>
+
+              {/* Product Description Section */}
+              <SectionAccordion
+                title="Product Description"
+                isOpen={sections.find((s) => s.id === "product")?.isOpen ?? true}
+                onToggle={() => toggleSection("product")}
+              >
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField label="Product Category">
+                    <Select defaultValue="brochure">
+                      <SelectTrigger className="h-10" style={{ borderRadius: 8 }}>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="brochure">Brochure</SelectItem>
+                        <SelectItem value="flyer">Flyer</SelectItem>
+                        <SelectItem value="book">Book</SelectItem>
+                        <SelectItem value="businesscard">Business Card</SelectItem>
+                        <SelectItem value="poster">Poster</SelectItem>
+                        <SelectItem value="booklet">Booklet</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormField>
+                  <FormField label="Quantity">
+                    <Input
+                      type="number"
+                      defaultValue={5000}
+                      className="h-10"
+                      style={{ borderRadius: 8 }}
+                    />
+                  </FormField>
+                  <FormField label="Finished Size">
+                    <Select defaultValue="a4">
+                      <SelectTrigger className="h-10" style={{ borderRadius: 8 }}>
+                        <SelectValue placeholder="Select size" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="a4">A4 (210 x 297 mm)</SelectItem>
+                        <SelectItem value="a5">A5 (148 x 210 mm)</SelectItem>
+                        <SelectItem value="a6">A6 (105 x 148 mm)</SelectItem>
+                        <SelectItem value="dl">DL (99 x 210 mm)</SelectItem>
+                        <SelectItem value="letter">Letter (216 x 279 mm)</SelectItem>
+                        <SelectItem value="custom">Custom</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormField>
+                  <FormField label="Orientation">
+                    <Select defaultValue="portrait">
+                      <SelectTrigger className="h-10" style={{ borderRadius: 8 }}>
+                        <SelectValue placeholder="Select orientation" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="portrait">Portrait</SelectItem>
+                        <SelectItem value="landscape">Landscape</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormField>
+                  <div className="col-span-2">
+                    <FormField label="Description">
+                      <Textarea
+                        placeholder="Additional product details..."
+                        defaultValue="A4 tri-fold brochure for spring marketing campaign. Full color both sides."
+                        rows={2}
+                        style={{ borderRadius: 8 }}
+                      />
+                    </FormField>
+                  </div>
+                </div>
+              </SectionAccordion>
+
+              {/* Inner Specs Section */}
+              <SectionAccordion
+                title="Inner Specs"
+                isOpen={sections.find((s) => s.id === "inner")?.isOpen ?? true}
+                onToggle={() => toggleSection("inner")}
+              >
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField label="Paper Type">
+                    <Select defaultValue="gloss">
+                      <SelectTrigger className="h-10" style={{ borderRadius: 8 }}>
+                        <SelectValue placeholder="Select paper type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="gloss">Gloss Coated</SelectItem>
+                        <SelectItem value="silk">Silk Coated</SelectItem>
+                        <SelectItem value="matte">Matte Coated</SelectItem>
+                        <SelectItem value="uncoated">Uncoated</SelectItem>
+                        <SelectItem value="recycled">Recycled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormField>
+                  <FormField label="Paper Weight">
+                    <Select defaultValue="200">
+                      <SelectTrigger className="h-10" style={{ borderRadius: 8 }}>
+                        <SelectValue placeholder="Select weight" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="80">80 gsm</SelectItem>
+                        <SelectItem value="100">100 gsm</SelectItem>
+                        <SelectItem value="120">120 gsm</SelectItem>
+                        <SelectItem value="150">150 gsm</SelectItem>
+                        <SelectItem value="170">170 gsm</SelectItem>
+                        <SelectItem value="200">200 gsm</SelectItem>
+                        <SelectItem value="250">250 gsm</SelectItem>
+                        <SelectItem value="300">300 gsm</SelectItem>
+                        <SelectItem value="350">350 gsm</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormField>
+                  <FormField label="Sides">
+                    <Select defaultValue="double">
+                      <SelectTrigger className="h-10" style={{ borderRadius: 8 }}>
+                        <SelectValue placeholder="Select sides" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="single">Single-sided (1/0)</SelectItem>
+                        <SelectItem value="double">Double-sided (4/4)</SelectItem>
+                        <SelectItem value="mixed">Mixed (4/1)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormField>
+                  <FormField label="Color">
+                    <Select defaultValue="full">
+                      <SelectTrigger className="h-10" style={{ borderRadius: 8 }}>
+                        <SelectValue placeholder="Select color" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="full">Full Color (CMYK)</SelectItem>
+                        <SelectItem value="bw">Black & White</SelectItem>
+                        <SelectItem value="spot">Spot Color (Pantone)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormField>
+                  <FormField label="Number of Pages">
+                    <Input
+                      type="number"
+                      defaultValue={6}
+                      className="h-10"
+                      style={{ borderRadius: 8 }}
+                    />
+                  </FormField>
+                  <FormField label="Bleed">
+                    <Select defaultValue="3">
+                      <SelectTrigger className="h-10" style={{ borderRadius: 8 }}>
+                        <SelectValue placeholder="Select bleed" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">No bleed</SelectItem>
+                        <SelectItem value="3">3 mm</SelectItem>
+                        <SelectItem value="5">5 mm</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormField>
+                </div>
+              </SectionAccordion>
+
+              {/* Finishing Section */}
+              <SectionAccordion
+                title="Finishing"
+                isOpen={sections.find((s) => s.id === "finishing")?.isOpen ?? true}
+                onToggle={() => toggleSection("finishing")}
+              >
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField label="Folding">
+                    <Select defaultValue="tri-fold">
+                      <SelectTrigger className="h-10" style={{ borderRadius: 8 }}>
+                        <SelectValue placeholder="Select folding" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        <SelectItem value="half-fold">Half Fold</SelectItem>
+                        <SelectItem value="tri-fold">Tri-Fold</SelectItem>
+                        <SelectItem value="z-fold">Z-Fold</SelectItem>
+                        <SelectItem value="gate-fold">Gate Fold</SelectItem>
+                        <SelectItem value="accordion">Accordion Fold</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormField>
+                  <FormField label="Binding">
+                    <Select defaultValue="none">
+                      <SelectTrigger className="h-10" style={{ borderRadius: 8 }}>
+                        <SelectValue placeholder="Select binding" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        <SelectItem value="saddle-stitch">Saddle Stitch</SelectItem>
+                        <SelectItem value="perfect-bind">Perfect Binding</SelectItem>
+                        <SelectItem value="spiral">Spiral / Wire-O</SelectItem>
+                        <SelectItem value="hardcover">Hardcover / Case Bind</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormField>
+                  <FormField label="Lamination">
+                    <Select defaultValue="none">
+                      <SelectTrigger className="h-10" style={{ borderRadius: 8 }}>
+                        <SelectValue placeholder="Select lamination" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        <SelectItem value="gloss-lam">Gloss Lamination</SelectItem>
+                        <SelectItem value="matte-lam">Matte Lamination</SelectItem>
+                        <SelectItem value="soft-touch">Soft Touch</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormField>
+                  <FormField label="Coating">
+                    <Select defaultValue="none">
+                      <SelectTrigger className="h-10" style={{ borderRadius: 8 }}>
+                        <SelectValue placeholder="Select coating" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        <SelectItem value="uv-spot">UV Spot</SelectItem>
+                        <SelectItem value="uv-flood">UV Flood</SelectItem>
+                        <SelectItem value="aqueous">Aqueous Coating</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormField>
+                  <FormField label="Die Cutting">
+                    <Select defaultValue="none">
+                      <SelectTrigger className="h-10" style={{ borderRadius: 8 }}>
+                        <SelectValue placeholder="Select die cutting" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        <SelectItem value="standard">Standard Die Cut</SelectItem>
+                        <SelectItem value="custom">Custom Die Cut</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormField>
+                  <FormField label="Embossing / Foil">
+                    <Select defaultValue="none">
+                      <SelectTrigger className="h-10" style={{ borderRadius: 8 }}>
+                        <SelectValue placeholder="Select option" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        <SelectItem value="emboss">Embossing</SelectItem>
+                        <SelectItem value="deboss">Debossing</SelectItem>
+                        <SelectItem value="foil-gold">Gold Foil</SelectItem>
+                        <SelectItem value="foil-silver">Silver Foil</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormField>
+                </div>
+              </SectionAccordion>
+
+              {/* Pricing Section */}
+              <SectionAccordion
+                title="Pricing"
+                isOpen={sections.find((s) => s.id === "pricing")?.isOpen ?? true}
+                onToggle={() => toggleSection("pricing")}
+              >
+                <div className="space-y-4">
+                  <div
+                    className="overflow-hidden"
+                    style={{ borderRadius: 8, border: "1px solid #E6E6E6" }}
+                  >
+                    <table className="w-full" style={{ borderCollapse: "collapse" }}>
+                      <thead>
+                        <tr style={{ background: "#F7F7F7" }}>
+                          <th
+                            className="text-left px-4 py-2.5"
+                            style={{ fontSize: 12, fontWeight: 500, color: "#6B6B6B", borderBottom: "1px solid #E6E6E6", letterSpacing: "0.32px" }}
+                          >
+                            Item
+                          </th>
+                          <th
+                            className="text-right px-4 py-2.5"
+                            style={{ fontSize: 12, fontWeight: 500, color: "#6B6B6B", borderBottom: "1px solid #E6E6E6", letterSpacing: "0.32px" }}
+                          >
+                            Quantity
+                          </th>
+                          <th
+                            className="text-right px-4 py-2.5"
+                            style={{ fontSize: 12, fontWeight: 500, color: "#6B6B6B", borderBottom: "1px solid #E6E6E6", letterSpacing: "0.32px" }}
+                          >
+                            Unit Cost
+                          </th>
+                          <th
+                            className="text-right px-4 py-2.5"
+                            style={{ fontSize: 12, fontWeight: 500, color: "#6B6B6B", borderBottom: "1px solid #E6E6E6", letterSpacing: "0.32px" }}
+                          >
+                            Total
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td className="px-4 py-2.5 text-sm" style={{ borderBottom: "1px solid #E6E6E6", color: "#212121" }}>
+                            Printing (4/4 CMYK)
+                          </td>
+                          <td className="px-4 py-2.5 text-sm text-right" style={{ borderBottom: "1px solid #E6E6E6", color: "#525252" }}>
+                            5,000
+                          </td>
+                          <td className="px-4 py-2.5 text-sm text-right" style={{ borderBottom: "1px solid #E6E6E6", color: "#525252" }}>
+                            EUR 0.12
+                          </td>
+                          <td className="px-4 py-2.5 text-sm text-right font-medium" style={{ borderBottom: "1px solid #E6E6E6", color: "#212121" }}>
+                            EUR 600.00
+                          </td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2.5 text-sm" style={{ borderBottom: "1px solid #E6E6E6", color: "#212121" }}>
+                            Paper (200gsm Gloss)
+                          </td>
+                          <td className="px-4 py-2.5 text-sm text-right" style={{ borderBottom: "1px solid #E6E6E6", color: "#525252" }}>
+                            5,000
+                          </td>
+                          <td className="px-4 py-2.5 text-sm text-right" style={{ borderBottom: "1px solid #E6E6E6", color: "#525252" }}>
+                            EUR 0.08
+                          </td>
+                          <td className="px-4 py-2.5 text-sm text-right font-medium" style={{ borderBottom: "1px solid #E6E6E6", color: "#212121" }}>
+                            EUR 400.00
+                          </td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2.5 text-sm" style={{ borderBottom: "1px solid #E6E6E6", color: "#212121" }}>
+                            Tri-Fold Finishing
+                          </td>
+                          <td className="px-4 py-2.5 text-sm text-right" style={{ borderBottom: "1px solid #E6E6E6", color: "#525252" }}>
+                            5,000
+                          </td>
+                          <td className="px-4 py-2.5 text-sm text-right" style={{ borderBottom: "1px solid #E6E6E6", color: "#525252" }}>
+                            EUR 0.03
+                          </td>
+                          <td className="px-4 py-2.5 text-sm text-right font-medium" style={{ borderBottom: "1px solid #E6E6E6", color: "#212121" }}>
+                            EUR 150.00
+                          </td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2.5 text-sm" style={{ color: "#212121" }}>
+                            Make-ready & Setup
+                          </td>
+                          <td className="px-4 py-2.5 text-sm text-right" style={{ color: "#525252" }}>
+                            1
+                          </td>
+                          <td className="px-4 py-2.5 text-sm text-right" style={{ color: "#525252" }}>
+                            EUR 85.00
+                          </td>
+                          <td className="px-4 py-2.5 text-sm text-right font-medium" style={{ color: "#212121" }}>
+                            EUR 85.00
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField label="Margin (%)">
+                      <Input
+                        type="number"
+                        defaultValue={25}
+                        className="h-10"
+                        style={{ borderRadius: 8 }}
+                      />
+                    </FormField>
+                    <FormField label="Discount (%)">
+                      <Input
+                        type="number"
+                        defaultValue={0}
+                        className="h-10"
+                        style={{ borderRadius: 8 }}
+                      />
+                    </FormField>
+                  </div>
+                </div>
+              </SectionAccordion>
+
+              {/* Delivery Section */}
+              <SectionAccordion
+                title="Delivery"
+                isOpen={sections.find((s) => s.id === "delivery")?.isOpen ?? false}
+                onToggle={() => toggleSection("delivery")}
+              >
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField label="Delivery Date">
+                    <Input
+                      type="date"
+                      defaultValue="2026-03-28"
+                      className="h-10"
+                      style={{ borderRadius: 8 }}
+                    />
+                  </FormField>
+                  <FormField label="Shipping Method">
+                    <Select defaultValue="standard">
+                      <SelectTrigger className="h-10" style={{ borderRadius: 8 }}>
+                        <SelectValue placeholder="Select method" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="standard">Standard Shipping</SelectItem>
+                        <SelectItem value="express">Express Shipping</SelectItem>
+                        <SelectItem value="overnight">Overnight</SelectItem>
+                        <SelectItem value="pickup">Customer Pickup</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormField>
+                  <div className="col-span-2">
+                    <FormField label="Delivery Address">
+                      <Textarea
+                        placeholder="Enter delivery address..."
+                        defaultValue="DesignWorks GmbH
+Maximilianstrasse 42
+80538 Munich, Germany"
+                        rows={3}
+                        style={{ borderRadius: 8 }}
+                      />
+                    </FormField>
+                  </div>
+                </div>
+              </SectionAccordion>
+
+              {/* Notes Section */}
+              <SectionAccordion
+                title="Notes"
+                isOpen={sections.find((s) => s.id === "notes")?.isOpen ?? false}
+                onToggle={() => toggleSection("notes")}
+              >
+                <div className="space-y-4">
+                  <FormField label="Internal Notes">
+                    <Textarea
+                      placeholder="Notes visible only to your team..."
+                      rows={3}
+                      style={{ borderRadius: 8 }}
+                    />
+                  </FormField>
+                  <FormField label="Customer Notes">
+                    <Textarea
+                      placeholder="Notes visible on the estimate PDF..."
+                      rows={3}
+                      style={{ borderRadius: 8 }}
+                    />
+                  </FormField>
+                </div>
+              </SectionAccordion>
+
+              {/* Spacer at bottom to clear sticky pricing */}
+              <div style={{ height: 100 }} />
             </div>
-            <Button variant="ghost" size="sm">
-              <X className="h-4 w-4" />
-            </Button>
           </div>
 
-          <div className="p-4">
-            <div className="mb-4">
-              <h3 className="text-lg font-medium mb-2">What would you like to estimate?</h3>
-              <p className="text-sm text-neutral-50 mb-4">Describe the product or upload a file to get started</p>
-              <Textarea placeholder="Describe the product you want to estimate..." className="bg-white mb-4" rows={4} />
-              <div className="flex gap-2">
-                <Button className="flex-1">
-                  <Send className="h-4 w-4 mr-2" /> Send
-                </Button>
-                <Button variant="outline" size="icon">
-                  <Paperclip className="h-4 w-4" />
-                </Button>
+          {/* Sticky pricing summary */}
+          <div
+            className="shrink-0 px-6 py-4 flex items-center justify-between"
+            style={{
+              borderTop: "1px solid #E6E6E6",
+              background: "#FFFFFF",
+            }}
+          >
+            <div className="flex items-center gap-6">
+              <div>
+                <div className="text-xs font-medium" style={{ color: "#8A8A8A", letterSpacing: "0.32px" }}>
+                  Subtotal
+                </div>
+                <div className="text-sm font-medium" style={{ color: "#525252" }}>
+                  EUR 1,235.00
+                </div>
+              </div>
+              <div>
+                <div className="text-xs font-medium" style={{ color: "#8A8A8A", letterSpacing: "0.32px" }}>
+                  Margin (25%)
+                </div>
+                <div className="text-sm font-medium" style={{ color: "#29845A" }}>
+                  + EUR 308.75
+                </div>
+              </div>
+              <div>
+                <div className="text-xs font-medium" style={{ color: "#8A8A8A", letterSpacing: "0.32px" }}>
+                  VAT (19%)
+                </div>
+                <div className="text-sm font-medium" style={{ color: "#525252" }}>
+                  EUR 293.31
+                </div>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-xs font-medium" style={{ color: "#8A8A8A", letterSpacing: "0.32px" }}>
+                Total (incl. VAT)
+              </div>
+              <div className="text-xl font-semibold" style={{ color: "#212121" }}>
+                EUR 1,837.06
               </div>
             </div>
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+/* -------------------------------------------------------------------------
+   Sub-components
+   ------------------------------------------------------------------------- */
+
+function SectionAccordion({
+  title,
+  isOpen,
+  onToggle,
+  children,
+}: {
+  title: string
+  isOpen: boolean
+  onToggle: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <div
+      style={{
+        borderRadius: 8,
+        border: "1px solid #E6E6E6",
+        overflow: "hidden",
+      }}
+    >
+      <button
+        onClick={onToggle}
+        className="w-full flex items-center justify-between px-4 py-3 transition-colors hover:bg-[#F7F7F7]"
+        style={{
+          background: isOpen ? "#F7F7F7" : "#FFFFFF",
+          border: "none",
+          cursor: "pointer",
+          borderBottom: isOpen ? "1px solid #E6E6E6" : "none",
+        }}
+      >
+        <span
+          className="text-sm font-medium"
+          style={{ color: "#212121", letterSpacing: "0.16px" }}
+        >
+          {title}
+        </span>
+        {isOpen ? (
+          <ChevronDown className="h-4 w-4" style={{ color: "#6B6B6B" }} />
+        ) : (
+          <ChevronRight className="h-4 w-4" style={{ color: "#6B6B6B" }} />
+        )}
+      </button>
+      {isOpen && <div className="p-4">{children}</div>}
+    </div>
+  )
+}
+
+function FormField({
+  label,
+  children,
+}: {
+  label: string
+  children: React.ReactNode
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label
+        className="text-xs font-medium"
+        style={{ color: "#383838", letterSpacing: "0.32px" }}
+      >
+        {label}
+      </label>
+      {children}
     </div>
   )
 }

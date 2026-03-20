@@ -1,48 +1,17 @@
 "use client"
 
 import { useState } from "react"
-import { ArrowLeft, ChevronDown, ChevronRight, Download, Calendar, Settings, FileText } from "lucide-react"
+import { ChevronDown, ChevronRight, Download, Calendar, Settings, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import LeftMenu from "@/components/left-menu"
+import { useNavigation } from "@/lib/navigation-context"
 
-interface ManageOrdersProps {
-  onBackClick: () => void
-  onOrderClick: (orderId: string) => void
-  onSchedulingClick: () => void
-  onInventoryClick: () => void
-  onInventoryAllocationClick: () => void
-  onControlPanelClick: () => void
-  onPerformanceClick: () => void
-  onCustomersClick: () => void
-  onProductionTrackerClick: () => void
-  onProductionStationsClick: () => void
-  onLogisticsAnalyticsClick: () => void
-  onShipmentsClick: () => void
-  onTemplateSettingsClick: () => void
-  onInvoicesClick: () => void
-}
-
-export default function ManageOrders({
-  onBackClick,
-  onOrderClick,
-  onSchedulingClick,
-  onInventoryClick,
-  onInventoryAllocationClick,
-  onControlPanelClick,
-  onPerformanceClick,
-  onCustomersClick,
-  onProductionTrackerClick,
-  onProductionStationsClick,
-  onLogisticsAnalyticsClick,
-  onShipmentsClick,
-  onTemplateSettingsClick,
-  onInvoicesClick,
-}: ManageOrdersProps) {
+export default function ManageOrders() {
+  const { navigateTo } = useNavigation()
   const [orderType, setOrderType] = useState("job-based")
   const [selectedOrders, setSelectedOrders] = useState<string[]>([])
   const [selectAll, setSelectAll] = useState(false)
@@ -155,7 +124,7 @@ export default function ManageOrders({
   }
 
   const handleOrderClick = (orderId: string) => {
-    onOrderClick(orderId)
+    navigateTo("order-detail", { orderId })
   }
 
   const getStatusBadge = (status: string) => {
@@ -171,91 +140,17 @@ export default function ManageOrders({
     }
   }
 
-  const handleNavigate = (page: string) => {
-    switch (page) {
-      case "control-panel":
-        onControlPanelClick()
-        break
-      case "performance":
-        onPerformanceClick()
-        break
-      case "customers":
-        onCustomersClick()
-        break
-      case "estimates":
-        onBackClick()
-        break
-      case "orders":
-        // Already on this page
-        break
-      case "scheduling":
-        onSchedulingClick()
-        break
-      case "inventory":
-        onInventoryClick()
-        break
-      case "allocation":
-        onInventoryAllocationClick()
-        break
-      case "production-tracker":
-        onProductionTrackerClick()
-        break
-      case "production-stations":
-        onProductionStationsClick()
-        break
-      case "logistics-analytics":
-        onLogisticsAnalyticsClick()
-        break
-      case "shipments":
-        onShipmentsClick()
-        break
-    }
-  }
-
   return (
-    <div className="h-screen flex flex-col">
-      <div className="bg-white p-4 flex items-center justify-between border-b">
-        <div className="flex items-center">
-          <img
-            src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/download%20%2819%29-170UxeV7cg8b7kNjFagZkz9quPldwr.png"
-            alt="GelatoConnect Logo"
-            className="h-6 w-6 mr-2"
-          />
-          <span className="font-bold text-lg">GelatoConnect</span>
-        </div>
-
-        <div className="flex items-center">
-          <Button variant="ghost" size="sm" onClick={onBackClick} className="mr-4">
-            <ArrowLeft className="h-4 w-4 mr-1" />
-            Back to Manage Estimates
-          </Button>
-          <Input type="text" placeholder="Search" className="w-64 mr-4" />
-          <Button variant="outline" size="sm" className="mr-2 bg-transparent">
-            Support
-          </Button>
-          <div className="w-8 h-8 rounded-full bg-neutral-90 text-white flex items-center justify-center">PS</div>
-        </div>
-      </div>
-
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left Menu */}
-        <LeftMenu
-          activePage="orders"
-          onNavigate={(page) => {
-            handleNavigate(page)
-          }}
-        />
-
-        <div className="flex-1 flex flex-col overflow-hidden">
+    <div className="flex-1 flex flex-col overflow-hidden">
           <div className="p-6">
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-2xl font-bold">Manage Orders</h1>
               <div className="flex gap-2">
-                <Button variant="outline" onClick={onInvoicesClick}>
+                <Button variant="outline" onClick={() => navigateTo("invoices")}>
                   <FileText className="h-4 w-4 mr-2" />
                   Invoices
                 </Button>
-                <Button variant="outline" onClick={onTemplateSettingsClick}>
+                <Button variant="outline" onClick={() => navigateTo("job-ticket-templates")}>
                   <Settings className="h-4 w-4 mr-2" />
                   Template Settings
                 </Button>
@@ -425,8 +320,6 @@ export default function ManageOrders({
               </div>
             </div>
           </div>
-        </div>
-      </div>
     </div>
   )
 }

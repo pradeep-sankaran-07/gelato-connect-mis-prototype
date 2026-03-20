@@ -1,0 +1,21 @@
+// @ts-nocheck
+// Barrel file — re-exports all mock data
+
+export { mockCustomers } from "./customers"
+export { mockEstimates } from "./estimates"
+export { mockOrders } from "./orders"
+export { mockJobTickets } from "./jobs"
+export { mockInventory, mockAllocationRecords, mockSupplierPOs } from "./inventory"
+export { mockInvoices } from "./invoices"
+export { mockVendors, mockPurchaseOrders } from "./vendors"
+export { mockShipments, mockShippingRateTables, mockCarrierAccounts } from "./shipments"
+export { mockWorkflowTemplates } from "./workflows"
+export { mockMachines, mockMachineAlerts, mockMachineProductionLog, mockJDFConfigs } from "./machines"
+export { mockScheduleBlocks, mockScheduleConflicts } from "./scheduling"
+export { mockImpositionTemplates } from "./imposition-templates"
+export { mockJobProfitability, mockCustomerProfitability } from "./analytics"
+export { mockNotificationTemplates, mockNotificationEvents } from "./communications"
+export { mockActivityFeed } from "./activity-feed"
+export { mockERPConnection, mockERPFieldMappings, mockERPSyncLogs } from "./erp"
+export { mockExportConfigs, mockExportRecords } from "./exports"
+export { mockSupportTickets, mockPortalUsers } from "./portal"

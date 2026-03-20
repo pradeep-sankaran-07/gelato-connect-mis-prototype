@@ -1,113 +1,17 @@
 "use client"
 
 import { useState } from "react"
-import { TrendingDown, TrendingUp, Calendar, Filter, ArrowLeft, ChevronDown, Package, Palette } from "lucide-react"
+import { TrendingDown, TrendingUp, Calendar, Filter, ChevronDown, Package, Palette } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import LeftMenu from "./left-menu"
+import { useNavigation } from "@/lib/navigation-context"
 
-interface LogisticsAnalyticsProps {
-  onBackClick: () => void
-  onInventoryClick: () => void
-  onInventoryAllocationClick: () => void
-  onOrderClick: () => void
-  onSchedulingClick: () => void
-  onControlPanelClick: () => void
-  onPerformanceClick: () => void
-  onCustomersClick: () => void
-  onProductionTrackerClick: () => void
-  onProductionStationsClick: () => void
-  onLogisticsAnalyticsClick: () => void
-  onShipmentsClick: () => void
-}
-
-export default function LogisticsAnalytics({
-  onBackClick,
-  onInventoryClick,
-  onInventoryAllocationClick,
-  onOrderClick,
-  onSchedulingClick,
-  onControlPanelClick,
-  onPerformanceClick,
-  onCustomersClick,
-  onProductionTrackerClick,
-  onProductionStationsClick,
-  onLogisticsAnalyticsClick,
-  onShipmentsClick,
-}: LogisticsAnalyticsProps) {
+export default function LogisticsAnalytics() {
+  const { navigateTo } = useNavigation()
   const [activeTab, setActiveTab] = useState("parcel")
 
   return (
-    <div className="h-screen flex flex-col">
-      <div className="bg-white p-4 flex items-center justify-between border-b">
-        <div className="flex items-center">
-          <img
-            src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/download%20%2819%29-170UxeV7cg8b7kNjFagZkz9quPldwr.png"
-            alt="GelatoConnect Logo"
-            className="h-6 w-6 mr-2"
-          />
-          <span className="font-bold text-lg">GelatoConnect</span>
-        </div>
-
-        <div className="flex items-center">
-          <Button variant="ghost" size="sm" onClick={onBackClick} className="mr-4">
-            <ArrowLeft className="h-4 w-4 mr-1" />
-            Back
-          </Button>
-          <Input type="text" placeholder="Search" className="w-64 mr-4" />
-          <Button variant="outline" size="sm" className="mr-2">
-            Support
-          </Button>
-          <div className="w-8 h-8 rounded-full bg-neutral-90 text-white flex items-center justify-center">PS</div>
-        </div>
-      </div>
-
-      <div className="flex flex-1 overflow-hidden">
-        <LeftMenu
-          activePage="logistics-analytics"
-          onNavigate={(page) => {
-            switch (page) {
-              case "control-panel":
-                onControlPanelClick()
-                break
-              case "performance":
-                onPerformanceClick()
-                break
-              case "customers":
-                onCustomersClick()
-                break
-              case "estimates":
-                onBackClick()
-                break
-              case "orders":
-                onOrderClick()
-                break
-              case "scheduling":
-                onSchedulingClick()
-                break
-              case "inventory":
-                onInventoryClick()
-                break
-              case "allocation":
-                onInventoryAllocationClick()
-                break
-              case "production-tracker":
-                onProductionTrackerClick()
-                break
-              case "production-stations":
-                onProductionStationsClick()
-                break
-              case "logistics-analytics":
-                onLogisticsAnalyticsClick()
-                break
-              case "shipments":
-                onShipmentsClick()
-                break
-            }
-          }}
-        />
-        <div className="flex-1 overflow-auto p-6">
+    <div className="flex-1 overflow-auto p-6">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold">Analytics</h1>
             <div className="flex items-center space-x-2">
@@ -583,8 +487,6 @@ export default function LogisticsAnalytics({
               </div>
             </TabsContent>
           </Tabs>
-        </div>
-      </div>
     </div>
   )
 }

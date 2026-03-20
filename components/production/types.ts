@@ -11,6 +11,26 @@ export type ProductionStep =
   | "UV Coating"
   | "Laminating"
 
+export type IssueReasonCode = "Machine Error" | "Material Defect" | "Quality Issue" | "Operator Error"
+
+export interface IssueReport {
+  id: string
+  jobId: string
+  reasonCode: IssueReasonCode
+  description: string
+  isBlocking: boolean
+  resolutionNotes: string
+  photoAttached: boolean
+  timestamp: number
+}
+
+export interface ProductionStepTiming {
+  step: string
+  estimatedMinutes: number
+  actualMinutes: number | null
+  status: "completed" | "in-progress" | "pending"
+}
+
 export interface Job {
   id: string
   dispatchDate: string
@@ -22,6 +42,16 @@ export interface Job {
   startTime?: number
   pausedTime?: number
   totalTime?: number
+  customer?: string
+  productType?: string
+  estimatedMinutes?: number
+  actualMinutes?: number
+  stepTimeline?: ProductionStepTiming[]
+  issues?: IssueReport[]
+  specs?: string
+  stepInstructions?: string
+  materialsNeeded?: string[]
+  specialHandlingNotes?: string
 }
 
 export interface ProgressData {
