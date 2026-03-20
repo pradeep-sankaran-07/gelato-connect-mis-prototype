@@ -1,0 +1,33 @@
+// @ts-nocheck
+import type { JobProfitability, CustomerProfitability } from "@/lib/types"
+
+export const mockJobProfitability: JobProfitability[] = [
+  { jobId: "JOB-2025-001", jobNumber: "JOB-2025-001", customerName: "Acme Corporation", product: "Annual Report A4", revenue: 12715.10, materialCost: 1229, laborCost: 2800, outsourceCost: 0, overheadCost: 1450, totalCost: 5479, profit: 7236.10, margin: 56.9, completedAt: "2025-09-20T16:00:00Z" },
+  { jobId: "JOB-2025-005", jobNumber: "JOB-2025-005", customerName: "Luxe Labels SA", product: "Wine Labels", revenue: 8604, materialCost: 420, laborCost: 1850, outsourceCost: 1950, overheadCost: 980, totalCost: 5200, profit: 3404, margin: 39.6, completedAt: "2025-09-25T14:00:00Z" },
+  { jobId: "JOB-2025-007", jobNumber: "JOB-2025-007", customerName: "Metro Print Services", product: "DL & A5 Flyers", revenue: 1391.50, materialCost: 256, laborCost: 380, outsourceCost: 0, overheadCost: 220, totalCost: 856, profit: 535.50, margin: 38.5, completedAt: "2025-11-18T16:00:00Z" },
+  { jobId: "JOB-2025-013", jobNumber: "JOB-2025-013", customerName: "PrintCo Ltd", product: "Compliment Slips", revenue: 840, materialCost: 102, laborCost: 180, outsourceCost: 0, overheadCost: 110, totalCost: 392, profit: 448, margin: 53.3, completedAt: "2025-10-17T11:00:00Z" },
+  { jobId: "JOB-2025-015", jobNumber: "JOB-2025-015", customerName: "Titan Press OY", product: "Business Cards", revenue: 390, materialCost: 171, laborCost: 95, outsourceCost: 0, overheadCost: 65, totalCost: 331, profit: 59, margin: 15.1, completedAt: "2025-10-27T10:00:00Z" },
+  { jobId: "JOB-2025-002", jobNumber: "JOB-2025-002", customerName: "PrintCo Ltd", product: "Business Cards (50K)", revenue: 3300, materialCost: 1890, laborCost: 520, outsourceCost: 0, overheadCost: 350, totalCost: 2760, profit: 540, margin: 16.4, completedAt: "2025-12-04T16:00:00Z" },
+  { jobId: "JOB-2025-003", jobNumber: "JOB-2025-003", customerName: "BrandEx GmbH", product: "Product Catalogue", revenue: 19740, materialCost: 6298, laborCost: 3200, outsourceCost: 1300, overheadCost: 2100, totalCost: 12898, profit: 6842, margin: 34.7, completedAt: "2025-12-12T16:00:00Z" },
+  { jobId: "JOB-2025-008", jobNumber: "JOB-2025-008", customerName: "Summit Media Group", product: "Event Programme + Badges", revenue: 12900, materialCost: 925, laborCost: 2400, outsourceCost: 0, overheadCost: 1350, totalCost: 4675, profit: 8225, margin: 63.8, completedAt: "2025-12-08T16:00:00Z" },
+  { jobId: "JOB-2025-009", jobNumber: "JOB-2025-009", customerName: "Nova Graphics Srl", product: "Posters A1 & A2", revenue: 2318, materialCost: 880, laborCost: 320, outsourceCost: 0, overheadCost: 210, totalCost: 1410, profit: 908, margin: 39.2, completedAt: "2025-12-18T16:00:00Z" },
+  { jobId: "JOB-2025-011", jobNumber: "JOB-2025-011", customerName: "Acme Corporation", product: "Corporate Brochure", revenue: 2499, materialCost: 180, laborCost: 450, outsourceCost: 0, overheadCost: 280, totalCost: 910, profit: 1589, margin: 63.6, completedAt: "2025-12-06T16:00:00Z" },
+  { jobId: "JOB-2025-012", jobNumber: "JOB-2025-012", customerName: "Luxe Labels SA", product: "Wine Labels (Reprint)", revenue: 3480, materialCost: 175, laborCost: 720, outsourceCost: 850, overheadCost: 420, totalCost: 2165, profit: 1315, margin: 37.8, completedAt: "2025-12-16T16:00:00Z" },
+  { jobId: "JOB-2025-014", jobNumber: "JOB-2025-014", customerName: "BrandEx GmbH", product: "Die-Cut Stickers", revenue: 900, materialCost: 510, laborCost: 180, outsourceCost: 0, overheadCost: 120, totalCost: 810, profit: 90, margin: 10.0, completedAt: "2025-12-10T16:00:00Z" },
+  { jobId: "JOB-2025-016", jobNumber: "JOB-2025-016", customerName: "Creative Signs NV", product: "Exhibition Banners", revenue: 1718.20, materialCost: 228, laborCost: 380, outsourceCost: 560, overheadCost: 190, totalCost: 1358, profit: 360.20, margin: 21.0, completedAt: "2026-01-08T16:00:00Z" },
+  { jobId: "JOB-2025-017", jobNumber: "JOB-2025-017", customerName: "Apex Packaging AG", product: "Rigid Gift Box", revenue: 23580, materialCost: 2310, laborCost: 5800, outsourceCost: 2184, overheadCost: 3200, totalCost: 13494, profit: 10086, margin: 42.8, completedAt: "2026-01-14T16:00:00Z" },
+  { jobId: "JOB-2025-018", jobNumber: "ORD-2025-018", customerName: "Nova Graphics Srl", product: "Restaurant Menus", revenue: 439.20, materialCost: 85, laborCost: 120, outsourceCost: 0, overheadCost: 75, totalCost: 280, profit: 159.20, margin: 36.2, completedAt: "2025-12-15T16:00:00Z" },
+]
+
+export const mockCustomerProfitability: CustomerProfitability[] = [
+  { customerId: "acme-corp", customerName: "Acme Corporation", totalRevenue: 18927.90, totalCost: 6389, profit: 12538.90, margin: 66.2, orderCount: 3, avgOrderValue: 6309.30, lastOrderDate: "2025-11-28T15:00:00Z" },
+  { customerId: "printco-ltd", customerName: "PrintCo Ltd", totalRevenue: 4140, totalCost: 3152, profit: 988, margin: 23.9, orderCount: 2, avgOrderValue: 2070, lastOrderDate: "2025-11-10T09:30:00Z" },
+  { customerId: "brandex", customerName: "BrandEx GmbH", totalRevenue: 20640, totalCost: 13708, profit: 6932, margin: 33.6, orderCount: 2, avgOrderValue: 10320, lastOrderDate: "2025-11-25T10:00:00Z" },
+  { customerId: "creative-signs", customerName: "Creative Signs NV", totalRevenue: 1718.20, totalCost: 1358, profit: 360.20, margin: 21.0, orderCount: 1, avgOrderValue: 1718.20, lastOrderDate: "2025-11-20T11:00:00Z" },
+  { customerId: "metro-print", customerName: "Metro Print Services", totalRevenue: 1391.50, totalCost: 856, profit: 535.50, margin: 38.5, orderCount: 1, avgOrderValue: 1391.50, lastOrderDate: "2025-11-15T08:00:00Z" },
+  { customerId: "luxe-labels", customerName: "Luxe Labels SA", totalRevenue: 12084, totalCost: 7365, profit: 4719, margin: 39.1, orderCount: 2, avgOrderValue: 6042, lastOrderDate: "2025-11-18T16:00:00Z" },
+  { customerId: "apex-packaging", customerName: "Apex Packaging AG", totalRevenue: 23580, totalCost: 13494, profit: 10086, margin: 42.8, orderCount: 2, avgOrderValue: 11790, lastOrderDate: "2025-11-28T09:00:00Z" },
+  { customerId: "summit-media", customerName: "Summit Media Group", totalRevenue: 12900, totalCost: 4675, profit: 8225, margin: 63.8, orderCount: 1, avgOrderValue: 12900, lastOrderDate: "2025-11-01T10:00:00Z" },
+  { customerId: "nova-graphics", customerName: "Nova Graphics Srl", totalRevenue: 2757.20, totalCost: 1690, profit: 1067.20, margin: 38.7, orderCount: 2, avgOrderValue: 1378.60, lastOrderDate: "2025-11-27T14:00:00Z" },
+  { customerId: "titan-press", customerName: "Titan Press OY", totalRevenue: 2550, totalCost: 331, profit: 2219, margin: 87.0, orderCount: 2, avgOrderValue: 1275, lastOrderDate: "2025-11-15T14:00:00Z" },
+]

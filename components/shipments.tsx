@@ -11,116 +11,20 @@ import {
   Palette,
   FileText,
   ChevronRight,
-  ArrowLeft,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-import LeftMenu from "./left-menu"
+import { useNavigation } from "@/lib/navigation-context"
 
-interface ShipmentsProps {
-  onBackClick: () => void
-  onInventoryClick: () => void
-  onInventoryAllocationClick: () => void
-  onOrderClick: () => void
-  onSchedulingClick: () => void
-  onControlPanelClick: () => void
-  onPerformanceClick: () => void
-  onCustomersClick: () => void
-  onProductionTrackerClick: () => void
-  onProductionStationsClick: () => void
-  onLogisticsAnalyticsClick: () => void
-  onShipmentsClick: () => void
-}
-
-export default function Shipments({
-  onBackClick,
-  onInventoryClick,
-  onInventoryAllocationClick,
-  onOrderClick,
-  onSchedulingClick,
-  onControlPanelClick,
-  onPerformanceClick,
-  onCustomersClick,
-  onProductionTrackerClick,
-  onProductionStationsClick,
-  onLogisticsAnalyticsClick,
-  onShipmentsClick,
-}: ShipmentsProps) {
+export default function Shipments() {
+  const { navigateTo } = useNavigation()
   const [activeTab, setActiveTab] = useState("orders")
 
   return (
-    <div className="h-screen flex flex-col">
-      <div className="bg-white p-4 flex items-center justify-between border-b">
-        <div className="flex items-center">
-          <img
-            src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/download%20%2819%29-170UxeV7cg8b7kNjFagZkz9quPldwr.png"
-            alt="GelatoConnect Logo"
-            className="h-6 w-6 mr-2"
-          />
-          <span className="font-bold text-lg">GelatoConnect</span>
-        </div>
-
-        <div className="flex items-center">
-          <Button variant="ghost" size="sm" onClick={onBackClick} className="mr-4">
-            <ArrowLeft className="h-4 w-4 mr-1" />
-            Back
-          </Button>
-          <Input type="text" placeholder="Search" className="w-64 mr-4" />
-          <Button variant="outline" size="sm" className="mr-2">
-            Support
-          </Button>
-          <div className="w-8 h-8 rounded-full bg-neutral-90 text-white flex items-center justify-center">PS</div>
-        </div>
-      </div>
-
-      <div className="flex flex-1 overflow-hidden">
-        <LeftMenu
-          activePage="shipments"
-          onNavigate={(page) => {
-            switch (page) {
-              case "control-panel":
-                onControlPanelClick()
-                break
-              case "performance":
-                onPerformanceClick()
-                break
-              case "customers":
-                onCustomersClick()
-                break
-              case "estimates":
-                onBackClick()
-                break
-              case "orders":
-                onOrderClick()
-                break
-              case "scheduling":
-                onSchedulingClick()
-                break
-              case "inventory":
-                onInventoryClick()
-                break
-              case "allocation":
-                onInventoryAllocationClick()
-                break
-              case "production-tracker":
-                onProductionTrackerClick()
-                break
-              case "production-stations":
-                onProductionStationsClick()
-                break
-              case "logistics-analytics":
-                onLogisticsAnalyticsClick()
-                break
-              case "shipments":
-                onShipmentsClick()
-                break
-            }
-          }}
-        />
-        <div className="flex-1 overflow-auto">
+    <div className="flex-1 overflow-auto">
           <div className="p-6">
             <div className="flex items-center text-sm text-neutral-50 mb-4">
               <span className="hover:underline cursor-pointer">Logistics</span>
@@ -407,8 +311,6 @@ export default function Shipments({
               </div>
             </div>
           </div>
-        </div>
-      </div>
     </div>
   )
 }

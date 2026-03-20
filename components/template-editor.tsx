@@ -1,22 +1,105 @@
 "use client"
 
 import { useState } from "react"
-import { ArrowLeft, Eye, FileText, ImageIcon, Save, Code, Sparkles, Send } from "lucide-react"
+import { Eye, FileText, ImageIcon, Save, Code, Sparkles, Send, QrCode, Barcode, ListOrdered, Variable, ChevronDown, ChevronUp, Plus, Trash2, GripVertical } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { useNavigation } from "@/lib/navigation-context"
 
 interface TemplateEditorProps {
   templateId: string
-  onBackClick: () => void
 }
 
-export default function TemplateEditor({ templateId, onBackClick }: TemplateEditorProps) {
-  const [activeTab, setActiveTab] = useState<"preview" | "fields" | "assets">("preview")
+export default function TemplateEditor({ templateId }: TemplateEditorProps) {
+  const { goBack } = useNavigation()
+  const [activeTab, setActiveTab] = useState<"preview" | "fields" | "assets" | "barcode" | "steps" | "variables">("preview")
   const [rightPanelView, setRightPanelView] = useState<"connectai" | "html">("connectai")
   const [paperSize, setPaperSize] = useState("A4")
+  const [barcodeType, setBarcodeType] = useState("qr")
+  const [barcodeContent, setBarcodeContent] = useState("{{orderNumber}}")
+  const [expandedStep, setExpandedStep] = useState<number | null>(0)
+
+  const [productionSteps, setProductionSteps] = useState([
+    {
+      id: 1,
+      name: "Digital Printing",
+      machine: "{{printingMachine}}",
+      instructions: "Load paper stock as specified. Calibrate color profile before run. Run test sheet and verify against proof. Monitor inline quality sensor.",
+      setupNote: "Verify paper weight and coating match job ticket specifications",
+      qualityCheck: "Check color density every 500 sheets",
+    },
+    {
+      id: 2,
+      name: "Cutting",
+      machine: "{{cuttingMachine}}",
+      instructions: "Stack max sheets per cut as per machine spec. Verify first cut against trim marks. Ensure coating is dry before stacking.",
+      setupNote: "Program cutting dimensions from job ticket",
+      qualityCheck: "Measure first 5 cuts against template",
+    },
+    {
+      id: 3,
+      name: "Folding",
+      machine: "{{foldingMachine}}",
+      instructions: "Pre-score fold lines for heavy stock. Run test batch and verify fold alignment. Pull sample every 500 sheets for inspection.",
+      setupNote: "Set fold type and dimensions per job ticket",
+      qualityCheck: "Check fold accuracy +/-0.5mm tolerance",
+    },
+    {
+      id: 4,
+      name: "Packing",
+      machine: "{{packingProcess}}",
+      instructions: "Count units per box as specified. Place divider sheets between groups. Label each box with order number and destination.",
+      setupNote: "Verify packaging materials are ready",
+      qualityCheck: "Verify count per package before sealing",
+    },
+  ])
+
+  const variableSubstitutions: Record<string, string> = {
+    "{{orderNumber}}": "j-18-pc-5000",
+    "{{jobId}}": "GCj-18-pc-5000",
+    "{{jobCount}}": "1",
+    "{{customerName}}": "PrintCo Ltd",
+    "{{customerCode}}": "C000246-PrintCo",
+    "{{jobDate}}": "May 16, 2025",
+    "{{deliveryDate}}": "June 1, 2025",
+    "{{jobName}}": "PrintCo Tri-fold Brochures",
+    "{{jobType}}": "Marketing Brochure",
+    "{{quantity}}": "5,000",
+    "{{size}}": "A4",
+    "{{finishing}}": "Tri-fold",
+    "{{paperType}}": "200gsm Gloss",
+    "{{bindingType}}": "None",
+    "{{printingMachine}}": "HP Indigo 12000 HD",
+    "{{cuttingMachine}}": "POLAR 92 PLUS Guillotine",
+    "{{foldingMachine}}": "Heidelberg Stahlfolder TH82",
+    "{{packingProcess}}": "Automated Counting & Boxing",
+    "{{totalProductionTime}}": "6.5 hours",
+    "{{totalSetupTime}}": "50 minutes",
+  }
+
+  const updateStepField = (stepId: number, field: string, value: string) => {
+    setProductionSteps(prev =>
+      prev.map(step => step.id === stepId ? { ...step, [field]: value } : step)
+    )
+  }
+
+  const addProductionStep = () => {
+    const newId = Math.max(...productionSteps.map(s => s.id)) + 1
+    setProductionSteps(prev => [
+      ...prev,
+      { id: newId, name: "New Step", machine: "", instructions: "", setupNote: "", qualityCheck: "" },
+    ])
+    setExpandedStep(productionSteps.length)
+  }
+
+  const removeProductionStep = (stepId: number) => {
+    setProductionSteps(prev => prev.filter(s => s.id !== stepId))
+  }
 
   // Sample template content
   const [templateContent, setTemplateContent] = useState(`<!DOCTYPE html>
@@ -473,24 +556,297 @@ export default function TemplateEditor({ templateId, onBackClick }: TemplateEdit
     </div>
   )
 
+  const renderBarcodePreview = () => (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <QrCode className="h-5 w-5 text-info-70" />
+            Barcode / QR Code Preview
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label className="text-sm font-medium mb-1 block">Code Type</Label>
+            <div className="flex gap-2">
+              <Button
+                variant={barcodeType === "qr" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setBarcodeType("qr")}
+              >
+                <QrCode className="h-4 w-4 mr-1" />
+                QR Code
+              </Button>
+              <Button
+                variant={barcodeType === "barcode" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setBarcodeType("barcode")}
+              >
+                <Barcode className="h-4 w-4 mr-1" />
+                Barcode 128
+              </Button>
+              <Button
+                variant={barcodeType === "datamatrix" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setBarcodeType("datamatrix")}
+              >
+                <QrCode className="h-4 w-4 mr-1" />
+                Data Matrix
+              </Button>
+            </div>
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium mb-1 block">Content (use variables)</Label>
+            <Input
+              value={barcodeContent}
+              onChange={(e) => setBarcodeContent(e.target.value)}
+              placeholder="e.g. {{orderNumber}}"
+              className="font-mono text-sm"
+            />
+            <p className="text-xs text-neutral-50 mt-1">
+              Resolves to: <span className="font-mono bg-neutral-5 px-1 rounded">{variableSubstitutions[barcodeContent] || barcodeContent.replace(/\{\{(\w+)\}\}/g, (_, key) => variableSubstitutions[`{{${key}}}`] || `{{${key}}}`)}</span>
+            </p>
+          </div>
+
+          {/* Preview */}
+          <div className="border-2 border-dashed border-neutral-20 rounded-lg p-6 flex flex-col items-center gap-3 bg-white">
+            {barcodeType === "qr" ? (
+              <div className="w-32 h-32 border border-neutral-30 rounded flex items-center justify-center bg-neutral-5">
+                <QrCode className="h-20 w-20 text-neutral-90" />
+              </div>
+            ) : barcodeType === "barcode" ? (
+              <div className="w-48 h-24 border border-neutral-30 rounded flex items-center justify-center bg-neutral-5">
+                <Barcode className="h-16 w-40 text-neutral-90" />
+              </div>
+            ) : (
+              <div className="w-24 h-24 border border-neutral-30 rounded flex items-center justify-center bg-neutral-5">
+                <QrCode className="h-16 w-16 text-neutral-90" />
+              </div>
+            )}
+            <span className="text-xs font-mono text-neutral-50">
+              {variableSubstitutions[barcodeContent] || barcodeContent}
+            </span>
+            <Badge className="bg-info-10 text-info-90 text-xs">
+              {barcodeType === "qr" ? "QR Code" : barcodeType === "barcode" ? "Code 128" : "Data Matrix"}
+            </Badge>
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium mb-1 block">Placement</Label>
+            <div className="grid grid-cols-3 gap-2">
+              {["Top Left", "Top Right", "Header Center", "Bottom Left", "Bottom Right", "Footer Center"].map((pos) => (
+                <button
+                  key={pos}
+                  className="p-2 text-xs border rounded hover:bg-neutral-5 transition-colors text-center"
+                >
+                  {pos}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium mb-1 block">Size</Label>
+            <div className="flex items-center gap-3">
+              <Input type="number" defaultValue={25} className="w-20 text-sm" />
+              <span className="text-sm text-neutral-50">x</span>
+              <Input type="number" defaultValue={25} className="w-20 text-sm" />
+              <span className="text-sm text-neutral-50">mm</span>
+            </div>
+          </div>
+
+          <Button
+            className="w-full"
+            onClick={() => {
+              const tag = barcodeType === "qr"
+                ? `<div class="qr-code" data-content="${barcodeContent}"></div>`
+                : `<div class="barcode" data-content="${barcodeContent}" data-type="${barcodeType}"></div>`
+              setTemplateContent((prev) => prev + "\n" + tag)
+            }}
+          >
+            Insert into Template
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  )
+
+  const renderStepInstructions = () => (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <ListOrdered className="h-5 w-5 text-info-70" />
+              Production Step Instructions
+            </span>
+            <Button size="sm" variant="outline" onClick={addProductionStep}>
+              <Plus className="h-4 w-4 mr-1" />
+              Add Step
+            </Button>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-neutral-50 mb-2">
+            Define step-by-step instructions that appear on the printed job ticket for each production stage.
+          </p>
+          {productionSteps.map((step, idx) => (
+            <div key={step.id} className="border rounded-lg overflow-hidden">
+              <button
+                className="w-full flex items-center justify-between p-3 bg-neutral-5 hover:bg-neutral-5/80 transition-colors text-left"
+                onClick={() => setExpandedStep(expandedStep === idx ? null : idx)}
+              >
+                <div className="flex items-center gap-3">
+                  <GripVertical className="h-4 w-4 text-neutral-40" />
+                  <div className="w-6 h-6 rounded-full bg-info-70 text-white flex items-center justify-center text-xs font-bold">
+                    {idx + 1}
+                  </div>
+                  <span className="font-medium text-sm">{step.name}</span>
+                  <span className="text-xs text-neutral-50">{step.machine}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 w-7 p-0 text-critical-70 hover:text-critical-90"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      removeProductionStep(step.id)
+                    }}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                  {expandedStep === idx ? (
+                    <ChevronUp className="h-4 w-4 text-neutral-40" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-neutral-40" />
+                  )}
+                </div>
+              </button>
+
+              {expandedStep === idx && (
+                <div className="p-4 space-y-3 border-t">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label className="text-xs font-medium mb-1 block">Step Name</Label>
+                      <Input
+                        value={step.name}
+                        onChange={(e) => updateStepField(step.id, "name", e.target.value)}
+                        className="text-sm"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs font-medium mb-1 block">Machine Variable</Label>
+                      <Input
+                        value={step.machine}
+                        onChange={(e) => updateStepField(step.id, "machine", e.target.value)}
+                        className="text-sm font-mono"
+                        placeholder="e.g. {{printingMachine}}"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-xs font-medium mb-1 block">Production Instructions</Label>
+                    <Textarea
+                      value={step.instructions}
+                      onChange={(e) => updateStepField(step.id, "instructions", e.target.value)}
+                      className="text-sm min-h-[60px]"
+                      placeholder="Step-by-step instructions for operators..."
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-medium mb-1 block">Setup Notes</Label>
+                    <Input
+                      value={step.setupNote}
+                      onChange={(e) => updateStepField(step.id, "setupNote", e.target.value)}
+                      className="text-sm"
+                      placeholder="Pre-production setup requirements..."
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-medium mb-1 block">Quality Check</Label>
+                    <Input
+                      value={step.qualityCheck}
+                      onChange={(e) => updateStepField(step.id, "qualityCheck", e.target.value)}
+                      className="text-sm"
+                      placeholder="Quality control criteria..."
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </div>
+  )
+
+  const renderVariablePreview = () => (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Variable className="h-5 w-5 text-info-70" />
+            Variable Substitution Preview
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-neutral-50">
+            Preview how template variables will resolve with sample data. Click any variable to insert it into the template.
+          </p>
+
+          <div className="border rounded-lg overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-neutral-5">
+                <tr>
+                  <th className="text-left p-2 font-medium text-neutral-60">Variable</th>
+                  <th className="text-left p-2 font-medium text-neutral-60">Sample Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.entries(variableSubstitutions).map(([variable, value]) => (
+                  <tr
+                    key={variable}
+                    className="border-t hover:bg-info-10/30 cursor-pointer transition-colors"
+                    onClick={() => setTemplateContent((prev) => prev + variable)}
+                  >
+                    <td className="p-2">
+                      <code className="text-xs bg-neutral-5 px-1.5 py-0.5 rounded font-mono">{variable}</code>
+                    </td>
+                    <td className="p-2 text-neutral-70">{value}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="border-t pt-4">
+            <Label className="text-sm font-medium mb-2 block">Live Preview (first 500 chars)</Label>
+            <div className="bg-neutral-5 rounded-lg p-4 text-sm font-mono whitespace-pre-wrap break-all max-h-[200px] overflow-y-auto">
+              {templateContent
+                .replace(/\{\{(\w+)\}\}/g, (match) => variableSubstitutions[match] || match)
+                .replace(/<[^>]*>/g, "")
+                .trim()
+                .slice(0, 500)}
+              {templateContent.replace(/<[^>]*>/g, "").length > 500 && "..."}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+
   return (
-    <div className="h-screen flex flex-col">
+    <div className="flex-1 flex flex-col overflow-hidden">
       <div className="bg-white p-4 flex items-center justify-between border-b">
-        <div className="flex items-center">
-          <img
-            src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/download%20%2819%29-170UxeV7cg8b7kNjFagZkz9quPldwr.png"
-            alt="GelatoConnect Logo"
-            className="h-6 w-6 mr-2"
-          />
-          <span className="font-bold text-lg">GelatoConnect</span>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={() => goBack()}>
+            Back to Template Settings
+          </Button>
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={onBackClick}>
-            <ArrowLeft className="h-4 w-4 mr-1" />
-            Back to Template Settings
-          </Button>
-
           <Select value={paperSize} onValueChange={setPaperSize}>
             <SelectTrigger className="w-24">
               <SelectValue />
@@ -517,7 +873,7 @@ export default function TemplateEditor({ templateId, onBackClick }: TemplateEdit
         {/* Left Panel */}
         <div className="w-1/2 border-r flex flex-col">
           <div className="p-4 border-b">
-            <div className="flex space-x-1">
+            <div className="flex space-x-1 flex-wrap gap-y-1">
               <Button
                 variant={activeTab === "preview" ? "default" : "ghost"}
                 size="sm"
@@ -532,7 +888,31 @@ export default function TemplateEditor({ templateId, onBackClick }: TemplateEdit
                 onClick={() => setActiveTab("fields")}
               >
                 <FileText className="h-4 w-4 mr-2" />
-                Show available fields
+                Fields
+              </Button>
+              <Button
+                variant={activeTab === "barcode" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setActiveTab("barcode")}
+              >
+                <QrCode className="h-4 w-4 mr-2" />
+                Barcode/QR
+              </Button>
+              <Button
+                variant={activeTab === "steps" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setActiveTab("steps")}
+              >
+                <ListOrdered className="h-4 w-4 mr-2" />
+                Steps
+              </Button>
+              <Button
+                variant={activeTab === "variables" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setActiveTab("variables")}
+              >
+                <Variable className="h-4 w-4 mr-2" />
+                Variables
               </Button>
               <Button
                 variant={activeTab === "assets" ? "default" : "ghost"}
@@ -547,6 +927,9 @@ export default function TemplateEditor({ templateId, onBackClick }: TemplateEdit
           <div className="flex-1 p-4 overflow-auto">
             {activeTab === "preview" && renderPreview()}
             {activeTab === "fields" && renderFields()}
+            {activeTab === "barcode" && renderBarcodePreview()}
+            {activeTab === "steps" && renderStepInstructions()}
+            {activeTab === "variables" && renderVariablePreview()}
             {activeTab === "assets" && renderAssets()}
           </div>
         </div>

@@ -1,66 +1,58 @@
 "use client"
 
-import { ArrowLeft, Search, Bell } from "lucide-react"
+import { ArrowLeft, ArrowRight, Search, Bell, HelpCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import Link from "next/link"
+import { useNavigation } from "@/lib/navigation-context"
 
 interface HeaderProps {
-  backLink?: string
-  backText?: string
-  onBackClick?: () => void
   title?: string
 }
 
-export default function Header({ backLink, backText = "Back", onBackClick, title }: HeaderProps) {
+export default function Header({ title }: HeaderProps) {
+  const { goBack, canGoBack } = useNavigation()
+
   return (
     <div className="border-b border-neutral-20 bg-white">
-      <div className="flex h-20 items-center px-4 justify-between">
-        <div className="flex items-center">
-          <Link href="/" className="flex items-center mr-8">
-            <div className="mr-2">
-              <img
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/download%20%2819%29-170UxeV7cg8b7kNjFagZkz9quPldwr.png"
-                alt="GelatoConnect Logo"
-                className="h-6 w-6"
-              />
-            </div>
-            <span className="font-bold text-lg">GelatoConnect</span>
-          </Link>
-
-          {title && <h1 className="text-xl font-semibold">{title}</h1>}
-
-          {backLink && (
-            <Link href={backLink} className="flex items-center text-sm font-medium">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              {backText}
-            </Link>
-          )}
-
-          {onBackClick && (
-            <button onClick={onBackClick} className="flex items-center text-sm font-medium">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              {backText}
-            </button>
+      <div className="flex h-[56px] items-center px-4 justify-between">
+        {/* Left: Nav + Title */}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={goBack}
+            disabled={!canGoBack}
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="icon" className="h-8 w-8" disabled>
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+          {title && (
+            <h1 className="text-[15px] font-semibold text-neutral-100 ml-2">{title}</h1>
           )}
         </div>
 
-        <div className="relative w-96">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-neutral-50" />
+        {/* Center: Search */}
+        <div className="relative w-80">
+          <Search className="absolute left-2.5 top-2 h-4 w-4 text-neutral-50" />
           <input
             type="search"
-            placeholder="Search"
-            className="w-full rounded-md border-0 ring-1 ring-inset ring-neutral-30 bg-white pl-8 pr-4 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-90"
+            placeholder="Search orders, customers, jobs..."
+            className="w-full rounded-lg border-0 ring-1 ring-inset ring-neutral-30 bg-white pl-8 pr-4 py-[7px] text-[13px] outline-none focus:ring-1 focus:ring-neutral-90 transition-shadow"
           />
         </div>
 
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon">
-            <Bell className="h-5 w-5" />
+        {/* Right: Actions */}
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="icon" className="h-8 w-8 text-neutral-70">
+            <HelpCircle className="h-[18px] w-[18px]" />
           </Button>
-          <Button variant="ghost" size="sm" className="font-medium">
-            Support
+          <Button variant="ghost" size="icon" className="h-8 w-8 text-neutral-70 relative">
+            <Bell className="h-[18px] w-[18px]" />
+            <span className="absolute top-1 right-1 h-2 w-2 bg-critical-60 rounded-full" />
           </Button>
-          <div className="h-8 w-8 rounded-full bg-neutral-100 text-white flex items-center justify-center text-sm font-medium">
+          <div className="h-8 w-8 rounded-full bg-neutral-100 text-white flex items-center justify-center text-[12px] font-medium ml-1 cursor-pointer">
             PS
           </div>
         </div>

@@ -1,0 +1,10 @@
+node_modules
+.next
+repos
+*.pptx
+*.pdf
+*.zip
+*.txt
+.DS_Store
+.claude
+.git
