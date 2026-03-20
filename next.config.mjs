@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 const basePath = '/gelato-connect-mis-prototype'
-
 const nextConfig = {
   output: 'export',
   basePath,
