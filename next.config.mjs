@@ -1,7 +1,12 @@
 /** @type {import('next').NextConfig} */
+const basePath = '/gelato-connect-mis-prototype'
+
 const nextConfig = {
   output: 'export',
-  basePath: '/gelato-connect-mis-prototype',
+  basePath,
+  env: {
+    NEXT_PUBLIC_BASE_PATH: basePath,
+  },
   typescript: {
     ignoreBuildErrors: true,
   },

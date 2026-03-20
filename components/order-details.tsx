@@ -615,7 +615,7 @@ export default function OrderDetails({
             <div className="bg-neutral-5 p-4 font-semibold border-b">Digital Proof</div>
             <div className="p-4 space-y-4">
               <div className="aspect-video bg-neutral-5 rounded-md flex items-center justify-center">
-                <img src="/brochure-preview.png" alt="Brochure Preview" className="max-h-full rounded-md" />
+                <img src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/brochure-preview.png`} alt="Brochure Preview" className="max-h-full rounded-md" />
               </div>
               <div className="flex justify-between items-center">
                 <div>
@@ -1886,7 +1886,7 @@ export default function OrderDetails({
                           ) : !proofSent ? (
                             <div className="space-y-4">
                               <div className="aspect-video bg-neutral-5 rounded-md flex items-center justify-center">
-                                <img src="/brochure-preview.png" alt="Brochure Preview" className="max-h-full rounded-md" />
+                                <img src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/brochure-preview.png`} alt="Brochure Preview" className="max-h-full rounded-md" />
                               </div>
                               <div className="flex justify-between items-center">
                                 <div>
@@ -1899,7 +1899,7 @@ export default function OrderDetails({
                           ) : !proofApproved ? (
                             <div className="space-y-4">
                               <div className="aspect-video bg-neutral-5 rounded-md flex items-center justify-center">
-                                <img src="/brochure-preview.png" alt="Brochure Preview" className="max-h-full rounded-md" />
+                                <img src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/brochure-preview.png`} alt="Brochure Preview" className="max-h-full rounded-md" />
                               </div>
                               <div className="flex justify-between items-center">
                                 <div>
@@ -1915,7 +1915,7 @@ export default function OrderDetails({
                           ) : (
                             <div className="space-y-4">
                               <div className="aspect-video bg-neutral-5 rounded-md flex items-center justify-center">
-                                <img src="/brochure-preview.png" alt="Brochure Preview" className="max-h-full rounded-md" />
+                                <img src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/brochure-preview.png`} alt="Brochure Preview" className="max-h-full rounded-md" />
                               </div>
                               <div className="flex justify-between items-center">
                                 <div>
