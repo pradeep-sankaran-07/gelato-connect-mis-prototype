@@ -478,108 +478,127 @@ export default function OrderDetails({
 
   /* ---------- PROOFING TAB CONTENT ---------- */
   const renderProofingTab = () => {
+    const workflowSteps = [
+      { label: "Upload Artwork", active: true, completed: artworkUploaded },
+      { label: "Preflight Check", active: artworkUploaded, completed: showPreflightResults && preflightPassed },
+      { label: "Send Proof", active: showPreflightResults && preflightPassed, completed: proofSent },
+      { label: "Customer Review", active: proofSent, completed: proofApproved },
+      { label: proofApproved ? "Approved" : "Production Ready", active: proofApproved, completed: proofApproved },
+    ]
+
     return (
     <div className="max-w-6xl mx-auto space-y-6">
+      {/* Manual Workflow Notice */}
+      <div className="bg-white border rounded-lg p-4">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-info-10 flex items-center justify-center flex-shrink-0">
+            <Wrench className="h-4 w-4 text-info-70" />
+          </div>
+          <div className="flex-1">
+            <span className="text-sm font-medium">Manual Proofing Workflow</span>
+            <p className="text-xs text-neutral-50 mt-0.5">CSR / Sales person uploads artwork on behalf of the customer, runs preflight checks, and sends proof for approval. The customer can approve via the portal, or you can mark it as approved here.</p>
+          </div>
+          {proofApproved && (
+            <Button variant="outline" size="sm" onClick={() => { setArtworkUploaded(false); setShowPreflightResults(false); setPreflightPassed(false); setProofSent(false); setProofApproved(false); setShowRejectionForm(false); setOrderStatus("awaiting-artwork"); }} style={{ borderRadius: "999px" }}>
+              <RotateCcw className="h-3.5 w-3.5 mr-1" />Reset Demo
+            </Button>
+          )}
+        </div>
+      </div>
+
       {/* Proofing Workflow Steps */}
       <div className="bg-white border rounded-lg p-5">
         <h3 className="text-sm font-semibold text-neutral-100 mb-4">Proofing Workflow</h3>
         <div className="flex items-center justify-between">
-          {[
-            { label: "Upload", active: true, completed: artworkUploaded },
-            { label: "Preflight", active: artworkUploaded, completed: showPreflightResults && preflightPassed },
-            { label: "Send Proof", active: showPreflightResults && preflightPassed, completed: proofSent },
-            { label: "Customer Review", active: proofSent, completed: proofApproved },
-            { label: proofApproved ? "Approved" : "Pending", active: proofApproved, completed: proofApproved },
-          ].map((step, idx, arr) => (
+          {workflowSteps.map((step, idx, arr) => (
             <React.Fragment key={step.label}>
-              <div className="flex flex-col items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
-                  step.completed ? "bg-success-70 text-white" : step.active ? "bg-info-70 text-white" : "bg-neutral-20 text-neutral-50"
+              <div className="flex flex-col items-center min-w-[80px]">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-semibold transition-all ${
+                  step.completed ? "bg-success-70 text-white shadow-sm" : step.active ? "bg-info-70 text-white shadow-sm ring-4 ring-info-10" : "bg-neutral-20 text-neutral-50"
                 }`}>
-                  {step.completed ? <CheckCircle className="h-4 w-4" /> : idx + 1}
+                  {step.completed ? <CheckCircle className="h-5 w-5" /> : idx + 1}
                 </div>
-                <span className={`text-xs mt-1.5 ${step.completed ? "text-success-70 font-medium" : step.active ? "text-info-70 font-medium" : "text-neutral-50"}`}>
+                <span className={`text-xs mt-2 text-center ${step.completed ? "text-success-70 font-semibold" : step.active ? "text-info-70 font-semibold" : "text-neutral-50"}`}>
                   {step.label}
                 </span>
               </div>
               {idx < arr.length - 1 && (
-                <div className={`flex-1 h-0.5 mx-2 ${step.completed ? "bg-success-70" : "bg-neutral-20"}`} />
+                <div className={`flex-1 h-0.5 mx-3 rounded transition-colors ${step.completed ? "bg-success-70" : "bg-neutral-20"}`} />
               )}
             </React.Fragment>
           ))}
         </div>
       </div>
 
-      {/* Customer Approval Status */}
-      {proofSent && (
-        <div className="bg-white border rounded-lg p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={`w-2.5 h-2.5 rounded-full ${proofApproved ? "bg-success-70" : "bg-amber-500 animate-pulse"}`} />
-              <div>
-                <span className="text-sm font-medium">{proofApproved ? "Proof approved by Alex Chen" : "Awaiting customer review"}</span>
-                <p className="text-xs text-neutral-50 mt-0.5">{proofApproved ? "May 20, 2025 at 11:45 AM" : "Sent May 19, 2025 — customer has not yet responded"}</p>
+      {/* STEP 1: Upload Artwork */}
+      <div className="bg-white border rounded-lg overflow-hidden">
+        <div className="p-4 border-b bg-neutral-5 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${artworkUploaded ? "bg-success-70 text-white" : "bg-info-70 text-white"}`}>
+              {artworkUploaded ? <CheckCircle className="h-3.5 w-3.5" /> : "1"}
+            </div>
+            <h3 className="font-semibold text-sm">Upload Artwork</h3>
+          </div>
+          {artworkUploaded && (
+            <Badge className="bg-success-10 text-success-90 text-xs">Uploaded</Badge>
+          )}
+        </div>
+        <div className="p-5">
+          {!artworkUploaded ? (
+            <div className="text-center py-10 border-2 border-dashed border-neutral-30 rounded-lg bg-neutral-5/50 hover:bg-neutral-5 transition-colors">
+              <Upload className="h-12 w-12 mx-auto text-neutral-40 mb-4" />
+              <h3 className="text-base font-medium mb-1">Upload print-ready artwork</h3>
+              <p className="text-sm text-neutral-50 mb-5 max-w-md mx-auto">Drag and drop or click to upload. We accept PDF, AI, EPS, PSD, JPG, and TIF files.</p>
+              <Button onClick={triggerFileUpload} style={{ borderRadius: "999px" }} className="bg-[#212121] text-white hover:bg-neutral-80">
+                <Upload className="h-4 w-4 mr-2" />Select File to Upload
+              </Button>
+              <p className="text-xs text-neutral-40 mt-3">Maximum file size: 500 MB</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-4 border rounded-lg bg-neutral-5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-info-10 flex items-center justify-center">
+                    <FileText className="h-5 w-5 text-info-70" />
+                  </div>
+                  <div>
+                    <div className="font-medium text-sm">PrintCo_Brochure_Final.pdf</div>
+                    <div className="text-xs text-neutral-50">5.2 MB &bull; PDF &bull; 6 pages &bull; 210 x 297 mm</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" style={{ borderRadius: "999px" }}><Eye className="h-3.5 w-3.5 mr-1" />Preview</Button>
+                  <Button variant="outline" size="sm" style={{ borderRadius: "999px" }}><Download className="h-3.5 w-3.5" /></Button>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-neutral-50">
+                <CheckCircle className="h-3.5 w-3.5 text-success-70" />
+                <span>Uploaded by Sarah Mitchell (CSR) &bull; Just now</span>
               </div>
             </div>
-            <div className="flex items-center gap-2 text-xs text-neutral-50">
-              <span>Portal link:</span>
-              <a className="text-info-70 hover:underline" href="#">{portalProofLink}</a>
-            </div>
-          </div>
+          )}
         </div>
-      )}
-
-      {/* Proof Status Header */}
-      <div className="bg-white border rounded-lg p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">File Receipt &amp; Proofing</h2>
-          <div className="flex items-center gap-3">
-            {proofApproved ? (
-              <Badge className="bg-success-10 text-success-90 px-3 py-1 text-sm">Proof Approved</Badge>
-            ) : proofSent ? (
-              <Badge className="bg-amber-100 text-amber-800 px-3 py-1 text-sm">Proof Pending Review</Badge>
-            ) : artworkUploaded ? (
-              <Badge className="bg-info-10 text-info-90 px-3 py-1 text-sm">Proof Ready</Badge>
-            ) : (
-              <Badge className="bg-neutral-5 text-neutral-60 px-3 py-1 text-sm">Awaiting Artwork</Badge>
-            )}
-          </div>
-        </div>
-        {!artworkUploaded ? (
-          <div className="text-center py-8 border-2 border-dashed rounded-md">
-            <Upload className="h-12 w-12 mx-auto text-neutral-40 mb-4" />
-            <h3 className="text-lg font-medium mb-2">No artwork uploaded yet</h3>
-            <p className="text-neutral-50 mb-4 max-w-md mx-auto">Upload print-ready artwork. We accept PDF, AI, EPS, PSD, JPG, and TIF.</p>
-            <Button onClick={triggerFileUpload}><Upload className="h-4 w-4 mr-1" />Upload Artwork</Button>
-          </div>
-        ) : (
-          <div className="flex items-center justify-between p-3 border rounded-md bg-neutral-5">
-            <div className="flex items-center">
-              <FileText className="h-8 w-8 text-info-70 mr-3" />
-              <div>
-                <div className="font-medium">PrintCo_Brochure_Final.pdf</div>
-                <div className="text-sm text-neutral-50">5.2 MB - Uploaded May 18, 2025 2:30 PM</div>
-              </div>
-            </div>
-            <Button variant="outline" size="sm"><Download className="h-4 w-4" /></Button>
-          </div>
-        )}
       </div>
 
-      {/* Detailed Preflight Report */}
+      {/* STEP 2: Preflight Check */}
       {artworkUploaded && (
         <div className="bg-white border rounded-lg overflow-hidden">
-          <div className="bg-neutral-5 p-4 font-semibold border-b flex items-center justify-between">
-            <span className="flex items-center gap-2"><FileCheck className="h-5 w-5 text-info-70" />Preflight Report</span>
+          <div className="p-4 border-b bg-neutral-5 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${showPreflightResults && preflightPassed ? "bg-success-70 text-white" : showPreflightResults ? "bg-amber-500 text-white" : "bg-info-70 text-white"}`}>
+                {showPreflightResults && preflightPassed ? <CheckCircle className="h-3.5 w-3.5" /> : "2"}
+              </div>
+              <h3 className="font-semibold text-sm">Preflight Check</h3>
+            </div>
             {showPreflightResults && (
-              <div className="flex items-center gap-3 text-sm font-normal">
-                <span className="flex items-center gap-1 text-success-70"><CheckCircle className="h-4 w-4" />{preflightChecks.filter(c => c.status === "pass").length} Passed</span>
-                <span className="flex items-center gap-1 text-amber-500"><AlertTriangle className="h-4 w-4" />{preflightChecks.filter(c => c.status === "warning").length} Warnings</span>
-                <span className="flex items-center gap-1 text-critical-70"><XCircle className="h-4 w-4" />{preflightChecks.filter(c => c.status === "fail").length} Failed</span>
+              <div className="flex items-center gap-3 text-xs font-medium">
+                <span className="flex items-center gap-1 text-success-70"><CheckCircle className="h-3.5 w-3.5" />{preflightChecks.filter(c => c.status === "pass").length} Passed</span>
+                <span className="flex items-center gap-1 text-amber-500"><AlertTriangle className="h-3.5 w-3.5" />{preflightChecks.filter(c => c.status === "warning").length} Warnings</span>
+                <span className="flex items-center gap-1 text-critical-70"><XCircle className="h-3.5 w-3.5" />{preflightChecks.filter(c => c.status === "fail").length} Failed</span>
               </div>
             )}
           </div>
-          <div className="p-4">
+          <div className="p-5">
             {showPreflightResults ? (
               <div className="space-y-2">
                 {preflightChecks.map((check, idx) => (
@@ -597,136 +616,291 @@ export default function OrderDetails({
                     </div>
                   </div>
                 ))}
+                {preflightPassed && (
+                  <div className="flex items-center gap-2 mt-3 p-3 rounded-lg bg-success-10/30 border border-success-10">
+                    <ShieldCheck className="h-5 w-5 text-success-70" />
+                    <div>
+                      <span className="text-sm font-medium text-success-90">Preflight passed — artwork is print-ready</span>
+                      <p className="text-xs text-success-70 mt-0.5">All critical checks passed. 1 non-blocking warning detected.</p>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
-              <div className="text-center py-8">
+              <div className="text-center py-10">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-info-70 mx-auto mb-4"></div>
-                <p className="text-neutral-50">Running preflight checks...</p>
+                <p className="text-sm font-medium mb-1">Running preflight checks...</p>
+                <p className="text-xs text-neutral-50">Checking resolution, color space, bleeds, fonts, and more</p>
               </div>
             )}
           </div>
         </div>
       )}
 
-      {/* Proof Preview + Version History */}
-      {artworkUploaded && showPreflightResults && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 bg-white border rounded-lg overflow-hidden">
-            <div className="bg-neutral-5 p-4 font-semibold border-b">Digital Proof</div>
-            <div className="p-4 space-y-4">
-              <div className="aspect-video bg-neutral-5 rounded-md flex items-center justify-center">
-                <img src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/brochure-preview.png`} alt="Brochure Preview" className="max-h-full rounded-md" />
+      {/* STEP 3: Send Proof + Digital Proof Preview */}
+      {artworkUploaded && showPreflightResults && preflightPassed && (
+        <div className="bg-white border rounded-lg overflow-hidden">
+          <div className="p-4 border-b bg-neutral-5 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${proofSent ? "bg-success-70 text-white" : "bg-info-70 text-white"}`}>
+                {proofSent ? <CheckCircle className="h-3.5 w-3.5" /> : "3"}
               </div>
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="font-medium">{proofApproved ? "Proof Approved" : proofSent ? "Proof Sent - Awaiting Approval" : "Proof Ready to Send"}</h3>
-                  <p className="text-sm text-neutral-50">{proofApproved ? "Approved by Alex Chen on May 20, 2025 11:45 AM" : proofSent ? "Sent to client for review" : "Review and send to client"}</p>
+              <h3 className="font-semibold text-sm">Send Proof to Customer</h3>
+            </div>
+            {proofSent ? (
+              <Badge className="bg-success-10 text-success-90 text-xs">Sent</Badge>
+            ) : (
+              <Badge className="bg-info-10 text-info-90 text-xs">Ready to Send</Badge>
+            )}
+          </div>
+          <div className="p-5 space-y-5">
+            {/* Proof Preview */}
+            <div className="aspect-[16/9] bg-neutral-5 rounded-lg flex items-center justify-center border overflow-hidden">
+              <img src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/brochure-preview.png`} alt="Brochure Preview" className="max-h-full max-w-full object-contain rounded" />
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="font-medium text-sm">{proofSent ? "Proof sent to customer" : "Digital proof ready for review"}</h4>
+                <p className="text-xs text-neutral-50 mt-0.5">{proofSent ? "Emailed to orders@printco.co.uk with portal link for review" : "Review the proof above, then send to the customer for approval"}</p>
+              </div>
+              {!proofSent && (
+                <Button onClick={() => setShowSendProofModal(true)} style={{ borderRadius: "999px" }} className="bg-[#212121] text-white hover:bg-neutral-80">
+                  <Send className="h-4 w-4 mr-2" />Send Proof to Customer
+                </Button>
+              )}
+            </div>
+            {proofSent && !proofApproved && (
+              <div className="border rounded-lg p-4 bg-neutral-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <Send className="h-4 w-4 text-info-70" />
+                  <span className="text-sm font-medium">Proof email sent</span>
                 </div>
-                <div className="flex gap-2">
-                  {!proofSent && (
-                    <Button onClick={() => setShowSendProofModal(true)} disabled={!preflightPassed}><Send className="h-4 w-4 mr-1" />Send to Client</Button>
-                  )}
-                  {proofSent && !proofApproved && (
+                <div className="grid grid-cols-2 gap-3 text-xs text-neutral-60">
+                  <div><span className="text-neutral-40">To:</span> orders@printco.co.uk</div>
+                  <div><span className="text-neutral-40">Sent:</span> Just now</div>
+                  <div className="col-span-2"><span className="text-neutral-40">Portal link:</span> <a className="text-info-70 hover:underline" href="#">{portalProofLink}</a></div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* STEP 4: Customer Review */}
+      {proofSent && (
+        <div className="bg-white border rounded-lg overflow-hidden">
+          <div className="p-4 border-b bg-neutral-5 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${proofApproved ? "bg-success-70 text-white" : "bg-amber-500 text-white"}`}>
+                {proofApproved ? <CheckCircle className="h-3.5 w-3.5" /> : "4"}
+              </div>
+              <h3 className="font-semibold text-sm">Customer Review</h3>
+            </div>
+            {proofApproved ? (
+              <Badge className="bg-success-10 text-success-90 text-xs">Approved</Badge>
+            ) : (
+              <Badge className="bg-amber-100 text-amber-800 text-xs flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />Awaiting Review</Badge>
+            )}
+          </div>
+          <div className="p-5">
+            {proofApproved ? (
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 p-4 rounded-lg bg-success-10/30 border border-success-10">
+                  <CheckCircle className="h-6 w-6 text-success-70" />
+                  <div>
+                    <span className="text-sm font-semibold text-success-90">Proof approved by Alex Chen</span>
+                    <p className="text-xs text-success-70 mt-0.5">Approved just now &bull; Order is ready to move to production</p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Waiting indicator */}
+                <div className="flex items-center gap-3 p-4 rounded-lg bg-amber-50 border border-amber-200">
+                  <Clock className="h-5 w-5 text-amber-600" />
+                  <div className="flex-1">
+                    <span className="text-sm font-medium text-amber-900">Waiting for customer to review the proof</span>
+                    <p className="text-xs text-amber-700 mt-0.5">The customer can review and approve via the portal link sent by email</p>
+                  </div>
+                </div>
+
+                {/* Two paths */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Path A: Customer approves via portal */}
+                  <div className="border rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-7 h-7 rounded-full bg-info-10 flex items-center justify-center">
+                        <Eye className="h-3.5 w-3.5 text-info-70" />
+                      </div>
+                      <span className="text-sm font-medium">Customer Portal</span>
+                    </div>
+                    <p className="text-xs text-neutral-50 mb-3">Customer opens the portal link from the email, reviews the proof, and clicks approve or reject.</p>
+                    <div className="flex items-center gap-2 text-xs text-neutral-50 bg-neutral-5 rounded p-2">
+                      <span className="text-neutral-40">Link:</span>
+                      <a className="text-info-70 hover:underline truncate" href="#">{portalProofLink}</a>
+                    </div>
+                  </div>
+                  {/* Path B: CSR marks as approved */}
+                  <div className="border rounded-lg p-4 border-dashed">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-7 h-7 rounded-full bg-neutral-10 flex items-center justify-center">
+                        <ShieldCheck className="h-3.5 w-3.5 text-neutral-60" />
+                      </div>
+                      <span className="text-sm font-medium">Internal Approval</span>
+                    </div>
+                    <p className="text-xs text-neutral-50 mb-3">If the customer approved verbally (phone, email), you can mark the proof as approved here on their behalf.</p>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm"><Send className="h-4 w-4 mr-1" />Resend</Button>
-                      <Button variant="outline" size="sm" className="text-critical-70 hover:text-critical-90 bg-transparent" onClick={() => setShowRejectionForm(true)}><XCircle className="h-4 w-4 mr-1" />Reject</Button>
-                      <Button onClick={approveProof}><CheckCircle className="h-4 w-4 mr-1" />Approve</Button>
-                    </div>
-                  )}
-                  {proofApproved && (
-                    <Button variant="outline" size="sm"><Download className="h-4 w-4 mr-1" />Download</Button>
-                  )}
-                </div>
-              </div>
-              {/* Rejection Form */}
-              {showRejectionForm && (
-                <div className="border border-critical-10 rounded-lg p-4 bg-critical-10/20">
-                  <h4 className="font-medium text-critical-90 mb-3 flex items-center gap-2"><XCircle className="h-4 w-4" />Reject Proof</h4>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-sm font-medium text-neutral-60 mb-1">Rejection Reason</label>
-                      <select value={rejectionReason} onChange={(e) => setRejectionReason(e.target.value)} className="w-full border rounded-md px-3 py-2 text-sm">
-                        <option value="">Select a reason...</option>
-                        <option value="color">Color mismatch</option>
-                        <option value="layout">Layout issues</option>
-                        <option value="text">Text/content errors</option>
-                        <option value="image">Image quality</option>
-                        <option value="branding">Branding inconsistency</option>
-                        <option value="other">Other</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-neutral-60 mb-1">Comments</label>
-                      <Textarea value={rejectionComment} onChange={(e) => setRejectionComment(e.target.value)} placeholder="Describe what needs to be changed..." className="min-h-[80px] text-sm" />
-                    </div>
-                    <div className="flex justify-end gap-2">
-                      <Button variant="outline" size="sm" onClick={() => setShowRejectionForm(false)}>Cancel</Button>
-                      <Button size="sm" className="bg-critical-70 hover:bg-critical-90" onClick={() => { setShowRejectionForm(false); setRejectionReason(""); setRejectionComment(""); }}>Confirm Rejection</Button>
+                      <Button size="sm" onClick={approveProof} style={{ borderRadius: "999px" }} className="bg-success-70 hover:bg-success-90 text-white flex-1">
+                        <CheckCircle className="h-3.5 w-3.5 mr-1" />Mark as Approved
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => setShowRejectionForm(true)} style={{ borderRadius: "999px" }} className="text-critical-70 border-critical-70 hover:bg-critical-10">
+                        <XCircle className="h-3.5 w-3.5 mr-1" />Reject
+                      </Button>
                     </div>
                   </div>
                 </div>
-              )}
-            </div>
-          </div>
-          {/* Version History */}
-          <div className="bg-white border rounded-lg overflow-hidden">
-            <div className="bg-neutral-5 p-4 font-semibold border-b flex items-center gap-2"><History className="h-5 w-5 text-info-70" />Version History</div>
-            <div className="p-4">
-              <div className="relative">
-                <div className="absolute left-4 top-6 bottom-6 w-0.5 bg-neutral-20"></div>
-                <div className="space-y-6">
-                  {proofVersions.map((version) => (
-                    <div key={version.version} className="relative flex gap-4">
-                      <div className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${version.status === "approved" ? "bg-success-10" : version.status === "rejected" ? "bg-critical-10" : "bg-amber-100"}`}>
-                        {version.status === "approved" ? (<CheckCircle className="h-4 w-4 text-success-70" />) : version.status === "rejected" ? (<XCircle className="h-4 w-4 text-critical-70" />) : (<Clock className="h-4 w-4 text-amber-600" />)}
+
+                {/* Rejection Form */}
+                {showRejectionForm && (
+                  <div className="border border-critical-10 rounded-lg p-4 bg-critical-10/20">
+                    <h4 className="font-medium text-critical-90 mb-3 flex items-center gap-2"><XCircle className="h-4 w-4" />Reject Proof — Request Revisions</h4>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-60 mb-1">Rejection Reason</label>
+                        <select value={rejectionReason} onChange={(e) => setRejectionReason(e.target.value)} className="w-full border rounded-md px-3 py-2 text-sm">
+                          <option value="">Select a reason...</option>
+                          <option value="color">Color mismatch</option>
+                          <option value="layout">Layout issues</option>
+                          <option value="text">Text/content errors</option>
+                          <option value="image">Image quality</option>
+                          <option value="branding">Branding inconsistency</option>
+                          <option value="other">Other</option>
+                        </select>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium text-sm">{version.version}</span>
-                          <Badge className={`text-xs ${version.status === "approved" ? "bg-success-10 text-success-90" : version.status === "rejected" ? "bg-critical-10 text-critical-90" : "bg-amber-100 text-amber-800"}`}>
-                            {version.status === "approved" ? "Approved" : version.status === "rejected" ? "Rejected" : "Pending"}
-                          </Badge>
-                        </div>
-                        <p className="text-xs text-neutral-50 mb-1">{version.uploadDate}</p>
-                        <p className="text-xs text-neutral-50 mb-1.5">Reviewed by: {version.reviewer}</p>
-                        <div className="bg-neutral-5 rounded p-2">
-                          <p className="text-xs text-neutral-60 flex items-start gap-1"><MessageSquare className="h-3 w-3 mt-0.5 flex-shrink-0" />{version.comment}</p>
-                        </div>
-                        <button className="text-xs text-info-70 hover:underline mt-1.5 flex items-center gap-1"><Eye className="h-3 w-3" />View {version.file}</button>
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-60 mb-1">Comments for customer</label>
+                        <Textarea value={rejectionComment} onChange={(e) => setRejectionComment(e.target.value)} placeholder="Describe what needs to be changed..." className="min-h-[80px] text-sm" />
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" size="sm" onClick={() => setShowRejectionForm(false)} style={{ borderRadius: "999px" }}>Cancel</Button>
+                        <Button size="sm" className="bg-critical-70 hover:bg-critical-90 text-white" style={{ borderRadius: "999px" }} onClick={() => { setShowRejectionForm(false); setProofSent(false); setRejectionReason(""); setRejectionComment(""); }}>
+                          Reject &amp; Request New Artwork
+                        </Button>
                       </div>
                     </div>
-                  ))}
+                  </div>
+                )}
+
+                {/* Resend option */}
+                <div className="flex items-center justify-between pt-2 border-t">
+                  <span className="text-xs text-neutral-50">Customer hasn&apos;t responded?</span>
+                  <Button variant="outline" size="sm" style={{ borderRadius: "999px" }}>
+                    <Send className="h-3.5 w-3.5 mr-1" />Resend Proof Email
+                  </Button>
                 </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* STEP 5: Production Ready */}
+      {proofApproved && (
+        <div className="bg-white border-2 border-success-70 rounded-lg overflow-hidden">
+          <div className="p-4 border-b bg-success-10/30 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-success-70 flex items-center justify-center text-xs font-bold text-white">
+                <CheckCircle className="h-3.5 w-3.5" />
+              </div>
+              <h3 className="font-semibold text-sm text-success-90">Production Ready</h3>
+            </div>
+            <Badge className="bg-success-70 text-white text-xs">Complete</Badge>
+          </div>
+          <div className="p-5">
+            <div className="flex items-center gap-4">
+              <div className="flex-1">
+                <p className="text-sm font-medium">Proof approved — this order is ready for production</p>
+                <p className="text-xs text-neutral-50 mt-1">Artwork has passed preflight and been approved by the customer. You can now proceed to imposition and production planning.</p>
+              </div>
+              <Button onClick={() => { setActiveOrderTab("details"); }} style={{ borderRadius: "999px" }} className="bg-[#212121] text-white hover:bg-neutral-80">
+                <Printer className="h-4 w-4 mr-2" />Go to Order Details
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Version History — always shown after first upload */}
+      {artworkUploaded && (
+        <div className="bg-white border rounded-lg overflow-hidden">
+          <div className="p-4 border-b bg-neutral-5 flex items-center gap-2">
+            <History className="h-5 w-5 text-info-70" />
+            <h3 className="font-semibold text-sm">Proof Version History</h3>
+          </div>
+          <div className="p-4">
+            <div className="relative">
+              <div className="absolute left-4 top-6 bottom-6 w-0.5 bg-neutral-20"></div>
+              <div className="space-y-5">
+                {proofVersions.map((version) => (
+                  <div key={version.version} className="relative flex gap-4">
+                    <div className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${version.status === "approved" ? "bg-success-10" : version.status === "rejected" ? "bg-critical-10" : "bg-amber-100"}`}>
+                      {version.status === "approved" ? (<CheckCircle className="h-4 w-4 text-success-70" />) : version.status === "rejected" ? (<XCircle className="h-4 w-4 text-critical-70" />) : (<Clock className="h-4 w-4 text-amber-600" />)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-medium text-sm">{version.version}</span>
+                        <Badge className={`text-xs ${version.status === "approved" ? "bg-success-10 text-success-90" : version.status === "rejected" ? "bg-critical-10 text-critical-90" : "bg-amber-100 text-amber-800"}`}>
+                          {version.status === "approved" ? "Approved" : version.status === "rejected" ? "Rejected" : "Pending"}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-neutral-50 mb-1">{version.uploadDate}</p>
+                      <p className="text-xs text-neutral-50 mb-1.5">Reviewed by: {version.reviewer}</p>
+                      <div className="bg-neutral-5 rounded p-2">
+                        <p className="text-xs text-neutral-60 flex items-start gap-1"><MessageSquare className="h-3 w-3 mt-0.5 flex-shrink-0" />{version.comment}</p>
+                      </div>
+                      <button className="text-xs text-info-70 hover:underline mt-1.5 flex items-center gap-1"><Eye className="h-3 w-3" />View {version.file}</button>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         </div>
       )}
+
       {/* Send Proof to Customer Modal */}
       {showSendProofModal && (
         <div className="fixed inset-0 flex items-center justify-center z-[20001]" style={{ background: "rgba(33,33,33,0.8)" }}>
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-[520px]" style={{ borderRadius: "12px" }}>
             <div className="p-5 border-b">
               <h3 className="text-lg font-semibold" style={{ color: "#212121" }}>Send Proof to Customer</h3>
-              <p className="text-sm mt-1" style={{ color: "#8a8a8a" }}>An email will be sent with a link to review the proof</p>
+              <p className="text-sm mt-1" style={{ color: "#8a8a8a" }}>An email will be sent with a link to review and approve the proof</p>
             </div>
             <div className="p-5 space-y-4">
               <div className="border rounded-lg p-4 bg-neutral-5" style={{ borderRadius: "8px" }}>
-                <div className="text-xs mb-1" style={{ color: "#8a8a8a" }}>To:</div>
-                <div className="text-sm font-medium mb-3">orders@printco.co.uk</div>
-                <div className="text-xs mb-1" style={{ color: "#8a8a8a" }}>Subject:</div>
-                <div className="text-sm font-medium mb-3">Proof ready for review — Order #{orderId}</div>
-                <div className="text-xs mb-1" style={{ color: "#8a8a8a" }}>Portal Link:</div>
-                <div className="text-sm flex items-center gap-1" style={{ color: "#007cb4" }}>
-                  {portalProofLink}
-                  <button className="p-0.5 hover:bg-neutral-10 rounded" onClick={() => { navigator.clipboard?.writeText(portalProofLink) }}>
-                    <Copy className="h-3 w-3" />
-                  </button>
+                <div className="grid grid-cols-[80px_1fr] gap-y-3 text-sm">
+                  <span className="text-xs text-neutral-50">To:</span>
+                  <span className="font-medium">orders@printco.co.uk</span>
+                  <span className="text-xs text-neutral-50">CC:</span>
+                  <span className="text-neutral-60">alex.chen@printco.co.uk</span>
+                  <span className="text-xs text-neutral-50">Subject:</span>
+                  <span className="font-medium">Proof ready for review — Order #{orderId}</span>
+                  <span className="text-xs text-neutral-50">Portal:</span>
+                  <span className="flex items-center gap-1 text-info-70">
+                    {portalProofLink}
+                    <button className="p-0.5 hover:bg-neutral-10 rounded" onClick={() => { navigator.clipboard?.writeText(portalProofLink) }}>
+                      <Copy className="h-3 w-3" />
+                    </button>
+                  </span>
                 </div>
               </div>
-              <div className="flex items-center justify-between">
+              <div>
+                <label className="block text-sm font-medium mb-1.5" style={{ color: "#212121" }}>Message to customer (optional)</label>
+                <Textarea placeholder="Add a personal note to the customer..." className="text-sm min-h-[60px]" />
+              </div>
+              <div className="flex items-center justify-between p-3 border rounded-lg" style={{ borderRadius: "8px" }}>
                 <div>
-                  <div className="text-sm font-medium" style={{ color: "#212121" }}>Proof requires customer approval</div>
+                  <div className="text-sm font-medium" style={{ color: "#212121" }}>Require customer approval</div>
                   <div className="text-xs" style={{ color: "#8a8a8a" }}>Customer must explicitly approve before production starts</div>
                 </div>
                 <Switch checked={proofRequiresApproval} onCheckedChange={setProofRequiresApproval} />
@@ -735,7 +909,7 @@ export default function OrderDetails({
             <div className="p-5 border-t flex justify-between">
               <Button variant="outline" onClick={() => setShowSendProofModal(false)} style={{ borderRadius: "999px" }}>Cancel</Button>
               <Button onClick={() => { sendProof(); setShowSendProofModal(false) }} className="bg-[#212121] text-white" style={{ borderRadius: "999px" }}>
-                <Send className="h-4 w-4 mr-1" />Send Proof
+                <Send className="h-4 w-4 mr-2" />Send Proof Email
               </Button>
             </div>
           </div>
@@ -832,6 +1006,15 @@ export default function OrderDetails({
               </button>
             </div>
           </div>
+
+          {/* Hidden file input - always in DOM so proofing tab can use it */}
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            onChange={handleFileUpload}
+            accept=".pdf,.ai,.eps,.psd,.jpg,.tif"
+          />
 
           <div className="flex-1 overflow-y-auto p-6">
             {activeOrderTab === "job-ticket" && renderJobTicketTab()}
@@ -1179,13 +1362,6 @@ export default function OrderDetails({
                         checks.
                       </p>
                     </div>
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      className="hidden"
-                      onChange={handleFileUpload}
-                      accept=".pdf,.ai,.eps,.psd,.jpg,.tif"
-                    />
                     <Button onClick={triggerFileUpload} className="whitespace-nowrap bg-info-70 hover:bg-info-90">
                       <Upload className="h-4 w-4 mr-1" />
                       Upload Artwork

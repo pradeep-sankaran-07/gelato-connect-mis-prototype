@@ -146,14 +146,6 @@ export default function ManageOrders() {
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-2xl font-bold">Manage Orders</h1>
               <div className="flex gap-2">
-                <Button variant="outline" onClick={() => navigateTo("invoices")}>
-                  <FileText className="h-4 w-4 mr-2" />
-                  Invoices
-                </Button>
-                <Button variant="outline" onClick={() => navigateTo("job-ticket-templates")}>
-                  <Settings className="h-4 w-4 mr-2" />
-                  Template Settings
-                </Button>
               </div>
             </div>
 
