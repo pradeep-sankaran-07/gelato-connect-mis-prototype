@@ -164,8 +164,8 @@ function AppContent() {
     )
   }
 
-  // Create-estimate gets full-screen isolated rendering
-  if (currentScreen === "create-estimate") {
+  // Create-estimate and estimate-setup get full-screen isolated rendering (they have their own sidebars)
+  if (currentScreen === "create-estimate" || currentScreen === "estimate-setup") {
     return (
       <div className="h-screen w-screen bg-neutral-5">
         {renderScreen()}
