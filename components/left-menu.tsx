@@ -145,7 +145,7 @@ export default function LeftMenu() {
       {/* Logo area */}
       <div className="px-3 pt-4 pb-3">
         <img
-          src="/gelato-connect-logo.svg"
+          src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/gelato-connect-logo.svg`}
           alt="GelatoConnect"
           className="h-[22px] w-auto"
         />

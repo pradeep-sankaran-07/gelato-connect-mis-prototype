@@ -547,7 +547,7 @@ export default function OrderManagement({ onBackClick }: { onBackClick: () => vo
                         <div className="space-y-4">
                           <div className="aspect-video bg-neutral-5 rounded-md flex items-center justify-center">
                             <img
-                              src="/brochure-preview.png"
+                              src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/brochure-preview.png`}
                               alt="Brochure Preview"
                               className="max-h-full rounded-md"
                             />
@@ -569,7 +569,7 @@ export default function OrderManagement({ onBackClick }: { onBackClick: () => vo
                         <div className="space-y-4">
                           <div className="aspect-video bg-neutral-5 rounded-md flex items-center justify-center">
                             <img
-                              src="/brochure-preview.png"
+                              src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/brochure-preview.png`}
                               alt="Brochure Preview"
                               className="max-h-full rounded-md"
                             />
@@ -595,7 +595,7 @@ export default function OrderManagement({ onBackClick }: { onBackClick: () => vo
                         <div className="space-y-4">
                           <div className="aspect-video bg-neutral-5 rounded-md flex items-center justify-center">
                             <img
-                              src="/brochure-preview.png"
+                              src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/brochure-preview.png`}
                               alt="Brochure Preview"
                               className="max-h-full rounded-md"
                             />
