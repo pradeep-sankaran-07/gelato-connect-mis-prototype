@@ -25,13 +25,21 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-# Project docs (large files)
+# Project docs (sensitive / large files)
 *.pptx
 *.pdf
+*.docx
 *.zip
 *.txt
+*.tmp
 .DS_Store
 .claude/
+context docs/
+GelatoConnect_MIS_Comprehensive_PRD.md
+GelatoConnect_MIS_Development_Plan_v2.md
+Phase2_WS2_PRDs.md
+vercel.json
+.vercelignore
 
 # External repos
 repos/
