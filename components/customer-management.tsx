@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, Info, Search, Plus, Building2, Mail, Phone, User, Clock, FileText, MessageSquare, Star, X } from "lucide-react"
+import { ChevronLeft, Info, Search, Plus, Building2, Mail, Phone, User, Clock, FileText, MessageSquare, X } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useNavigation } from "@/lib/navigation-context"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -11,26 +11,16 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 
-// Pricing tiers with auto-discount percentages
-const pricingTiers = {
-  Standard: { discount: 0, color: "bg-neutral-20 text-neutral-90" },
-  Silver: { discount: 5, color: "bg-neutral-30 text-neutral-90" },
-  Gold: { discount: 10, color: "bg-[#ffe7ab] text-[#463710]" },
-  Platinum: { discount: 15, color: "bg-[#d7bce2] text-[#542c65]" },
-} as const
-
-type PricingTier = keyof typeof pricingTiers
-
 // Sample customer data
 const customers = [
-  { id: "acme-corp", name: "Acme Corp", status: "Active", tier: "Gold" as PricingTier, totalOrders: 142, totalRevenue: 284500 },
-  { id: "beta-solutions", name: "Beta Solutions", status: "Active", tier: "Silver" as PricingTier, totalOrders: 87, totalRevenue: 156200 },
-  { id: "gamma-industries", name: "Gamma Industries", status: "Active", tier: "Platinum" as PricingTier, totalOrders: 215, totalRevenue: 523800 },
-  { id: "delta-enterprises", name: "Delta Enterprises", status: "Inactive", tier: "Standard" as PricingTier, totalOrders: 23, totalRevenue: 34100 },
-  { id: "epsilon-tech", name: "Epsilon Tech", status: "Active", tier: "Gold" as PricingTier, totalOrders: 98, totalRevenue: 198700 },
-  { id: "zeta-systems", name: "Zeta Systems", status: "Active", tier: "Silver" as PricingTier, totalOrders: 64, totalRevenue: 112400 },
-  { id: "theta-innovations", name: "Theta Innovations", status: "Active", tier: "Standard" as PricingTier, totalOrders: 41, totalRevenue: 67300 },
-  { id: "omega-designs", name: "Omega Designs", status: "Active", tier: "Platinum" as PricingTier, totalOrders: 178, totalRevenue: 412600 },
+  { id: "acme-corp", name: "Acme Corp", status: "Active", totalOrders: 142, totalRevenue: 284500 },
+  { id: "beta-solutions", name: "Beta Solutions", status: "Active", totalOrders: 87, totalRevenue: 156200 },
+  { id: "gamma-industries", name: "Gamma Industries", status: "Active", totalOrders: 215, totalRevenue: 523800 },
+  { id: "delta-enterprises", name: "Delta Enterprises", status: "Inactive", totalOrders: 23, totalRevenue: 34100 },
+  { id: "epsilon-tech", name: "Epsilon Tech", status: "Active", totalOrders: 98, totalRevenue: 198700 },
+  { id: "zeta-systems", name: "Zeta Systems", status: "Active", totalOrders: 64, totalRevenue: 112400 },
+  { id: "theta-innovations", name: "Theta Innovations", status: "Active", totalOrders: 41, totalRevenue: 67300 },
+  { id: "omega-designs", name: "Omega Designs", status: "Active", totalOrders: 178, totalRevenue: 412600 },
 ]
 
 // Sample customer details
@@ -47,12 +37,11 @@ const customerDetails: Record<string, {
   invoiceTrigger: string
   daysAfterShipment?: number
   consolidationType?: string
-  tier: PricingTier
   creditLimit: number
   paymentTerms: string
+  accountId: string
   address: string
   website: string
-  notifications: { orderUpdates: boolean; invoiceReminders: boolean; proofApprovals: boolean; marketingEmails: boolean }
 }> = {
   "acme-corp": {
     name: "Acme Corp",
@@ -69,12 +58,11 @@ const customerDetails: Record<string, {
     invoicingTerms: "Net 30",
     invoiceEmail: "accounts@acmecorp.com",
     invoiceTrigger: "automatic",
-    tier: "Gold",
     creditLimit: 50000,
     paymentTerms: "Net 30",
+    accountId: "ACME-2024-001",
     address: "123 Business Park, London, UK EC1A 1BB",
     website: "www.acmecorp.com",
-    notifications: { orderUpdates: true, invoiceReminders: true, proofApprovals: true, marketingEmails: false },
   },
   "beta-solutions": {
     name: "Beta Solutions",
@@ -91,12 +79,11 @@ const customerDetails: Record<string, {
     invoiceEmail: "finance@betasolutions.com",
     invoiceTrigger: "days_after",
     daysAfterShipment: 7,
-    tier: "Silver",
     creditLimit: 25000,
     paymentTerms: "Net 15",
+    accountId: "BETA-2024-002",
     address: "456 Commerce Ave, New York, NY 10001",
     website: "www.betasolutions.com",
-    notifications: { orderUpdates: true, invoiceReminders: true, proofApprovals: false, marketingEmails: true },
   },
   "gamma-industries": {
     name: "Gamma Industries",
@@ -113,12 +100,11 @@ const customerDetails: Record<string, {
     invoiceEmail: "accounting@gammaindustries.eu",
     invoiceTrigger: "consolidated",
     consolidationType: "monthly",
-    tier: "Platinum",
     creditLimit: 100000,
     paymentTerms: "Net 45",
+    accountId: "GAMMA-2024-003",
     address: "78 Rue de l'Industrie, Paris, France 75008",
     website: "www.gammaindustries.eu",
-    notifications: { orderUpdates: true, invoiceReminders: true, proofApprovals: true, marketingEmails: true },
   },
   "delta-enterprises": {
     name: "Delta Enterprises",
@@ -131,12 +117,11 @@ const customerDetails: Record<string, {
     invoicingTerms: "Net 60",
     invoiceEmail: "finance@deltaent.jp",
     invoiceTrigger: "manual",
-    tier: "Standard",
     creditLimit: 10000,
     paymentTerms: "Net 60",
+    accountId: "DELTA-2024-004",
     address: "1-2-3 Shibuya, Tokyo, Japan 150-0002",
     website: "www.deltaent.jp",
-    notifications: { orderUpdates: true, invoiceReminders: false, proofApprovals: false, marketingEmails: false },
   },
   "epsilon-tech": {
     name: "Epsilon Tech",
@@ -152,12 +137,11 @@ const customerDetails: Record<string, {
     invoicingTerms: "Net 30",
     invoiceEmail: "accounts@epsilontech.co.uk",
     invoiceTrigger: "automatic",
-    tier: "Gold",
     creditLimit: 40000,
     paymentTerms: "Net 30",
+    accountId: "EPSILON-2024-005",
     address: "45 Tech Drive, Manchester, UK M1 1AA",
     website: "www.epsilontech.co.uk",
-    notifications: { orderUpdates: true, invoiceReminders: true, proofApprovals: true, marketingEmails: false },
   },
   "zeta-systems": {
     name: "Zeta Systems",
@@ -171,12 +155,11 @@ const customerDetails: Record<string, {
     invoiceEmail: "billing@zetasystems.com.au",
     invoiceTrigger: "consolidated",
     consolidationType: "weekly",
-    tier: "Silver",
     creditLimit: 20000,
     paymentTerms: "Net 15",
+    accountId: "ZETA-2024-006",
     address: "12 Harbour Road, Sydney, NSW 2000",
     website: "www.zetasystems.com.au",
-    notifications: { orderUpdates: true, invoiceReminders: true, proofApprovals: false, marketingEmails: true },
   },
   "theta-innovations": {
     name: "Theta Innovations",
@@ -193,12 +176,11 @@ const customerDetails: Record<string, {
     invoiceEmail: "accounts@thetainnovations.ca",
     invoiceTrigger: "days_after",
     daysAfterShipment: 14,
-    tier: "Standard",
     creditLimit: 15000,
     paymentTerms: "Net 30",
+    accountId: "THETA-2024-007",
     address: "800 Bay St, Toronto, ON M5S 1Z4",
     website: "www.thetainnovations.ca",
-    notifications: { orderUpdates: true, invoiceReminders: true, proofApprovals: true, marketingEmails: false },
   },
   "omega-designs": {
     name: "Omega Designs",
@@ -214,12 +196,11 @@ const customerDetails: Record<string, {
     invoicingTerms: "Net 45",
     invoiceEmail: "finance@omegadesigns.sg",
     invoiceTrigger: "manual",
-    tier: "Platinum",
     creditLimit: 80000,
     paymentTerms: "Net 45",
+    accountId: "OMEGA-2024-008",
     address: "50 Raffles Place, Singapore 048623",
     website: "www.omegadesigns.sg",
-    notifications: { orderUpdates: true, invoiceReminders: true, proofApprovals: true, marketingEmails: true },
   },
 }
 
@@ -411,8 +392,11 @@ export default function CustomerManagement() {
   const [showCustomTerms, setShowCustomTerms] = useState(false)
   const [invoiceEmail, setInvoiceEmail] = useState("")
   const [searchQuery, setSearchQuery] = useState("")
-  const [filterTier, setFilterTier] = useState<string>("all")
   const [filterStatus, setFilterStatus] = useState<string>("all")
+  const [isEditingPayment, setIsEditingPayment] = useState(false)
+  const [editPaymentTerms, setEditPaymentTerms] = useState("")
+  const [editCreditLimit, setEditCreditLimit] = useState("")
+  const [editAccountId, setEditAccountId] = useState("")
   const [showAddCustomerModal, setShowAddCustomerModal] = useState(false)
   const [customerNotes, setCustomerNotes] = useState(initialCustomerNotes)
   const [newNoteText, setNewNoteText] = useState("")
@@ -420,6 +404,8 @@ export default function CustomerManagement() {
   const handleCustomerClick = (customerId: string) => {
     setSelectedCustomerId(customerId)
     setActiveTab("overview")
+    setIsEditingInvoice(false)
+    setIsEditingPayment(false)
     if (customerId) {
       const customer = customerDetails[customerId]
       if (customer) {
@@ -429,6 +415,9 @@ export default function CustomerManagement() {
         setConsolidationType(customer.consolidationType || "monthly")
         setShowCustomTerms(customer.invoicingTerms.startsWith("Custom:"))
         setInvoiceEmail(customer.invoiceEmail || "")
+        setEditPaymentTerms(customer.paymentTerms)
+        setEditCreditLimit(String(customer.creditLimit))
+        setEditAccountId(customer.accountId)
         if (customer.invoicingTerms.startsWith("Custom:")) {
           setCustomTerms(customer.invoicingTerms.replace("Custom: ", ""))
         }
@@ -469,9 +458,8 @@ export default function CustomerManagement() {
   // Filter customers
   const filteredCustomers = customers.filter((c) => {
     const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesTier = filterTier === "all" || c.tier === filterTier
     const matchesStatus = filterStatus === "all" || c.status === filterStatus
-    return matchesSearch && matchesTier && matchesStatus
+    return matchesSearch && matchesStatus
   })
 
   const renderInvoiceTriggerOptions = () => {
@@ -602,18 +590,6 @@ export default function CustomerManagement() {
                 style={{ borderRadius: "8px" }}
               />
             </div>
-            <Select value={filterTier} onValueChange={setFilterTier}>
-              <SelectTrigger className="w-[160px]" style={{ borderRadius: "8px" }}>
-                <SelectValue placeholder="All Tiers" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Tiers</SelectItem>
-                <SelectItem value="Standard">Standard</SelectItem>
-                <SelectItem value="Silver">Silver</SelectItem>
-                <SelectItem value="Gold">Gold</SelectItem>
-                <SelectItem value="Platinum">Platinum</SelectItem>
-              </SelectContent>
-            </Select>
             <Select value={filterStatus} onValueChange={setFilterStatus}>
               <SelectTrigger className="w-[160px]" style={{ borderRadius: "8px" }}>
                 <SelectValue placeholder="All Statuses" />
@@ -632,7 +608,6 @@ export default function CustomerManagement() {
               <thead>
                 <tr style={{ borderBottom: "1px solid #e6e6e6" }}>
                   <th className="text-left p-3 font-medium text-sm" style={{ background: "#f7f7f7", color: "#6b6b6b" }}>Company Name</th>
-                  <th className="text-left p-3 font-medium text-sm" style={{ background: "#f7f7f7", color: "#6b6b6b" }}>Pricing Tier</th>
                   <th className="text-left p-3 font-medium text-sm" style={{ background: "#f7f7f7", color: "#6b6b6b" }}>Orders</th>
                   <th className="text-left p-3 font-medium text-sm" style={{ background: "#f7f7f7", color: "#6b6b6b" }}>Revenue</th>
                   <th className="text-right p-3 font-medium text-sm" style={{ background: "#f7f7f7", color: "#6b6b6b" }}>Status</th>
@@ -649,11 +624,6 @@ export default function CustomerManagement() {
                     onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                   >
                     <td className="p-3 text-sm font-medium" style={{ color: "#212121" }}>{cust.name}</td>
-                    <td className="p-3">
-                      <Badge className={`${pricingTiers[cust.tier].color} hover:opacity-90`}>
-                        {cust.tier} {pricingTiers[cust.tier].discount > 0 && `(${pricingTiers[cust.tier].discount}%)`}
-                      </Badge>
-                    </td>
                     <td className="p-3 text-sm" style={{ color: "#525252" }}>{cust.totalOrders}</td>
                     <td className="p-3 text-sm" style={{ color: "#525252" }}>{formatCurrency(cust.totalRevenue)}</td>
                     <td className="p-3 text-right">
@@ -703,9 +673,6 @@ export default function CustomerManagement() {
                 <div>
                   <h1 className="text-2xl font-semibold" style={{ color: "#212121", letterSpacing: "0.32px" }}>{customer.name}</h1>
                   <div className="flex items-center gap-2 mt-1">
-                    <Badge className={`${pricingTiers[customer.tier].color} hover:opacity-90`}>
-                      {customer.tier} Tier — {pricingTiers[customer.tier].discount}% Discount
-                    </Badge>
                     <Badge className={`${customerRecord?.status === "Active" ? "bg-[#cdfee1] text-[#0c5132]" : "bg-[#f7f7f7] text-[#383838]"} hover:opacity-90`}>
                       {customerRecord?.status}
                     </Badge>
@@ -769,159 +736,332 @@ export default function CustomerManagement() {
                     </div>
                   </div>
 
+                  {/* Point of Contact — v0 style 3-column grid */}
+                  <div className="border rounded-lg p-5" style={{ borderColor: "#e6e6e6", borderRadius: "8px" }}>
+                    <h3 className="text-base font-medium mb-2" style={{ color: "#212121" }}>Point of Contact</h3>
+                    <p className="text-sm mb-4" style={{ color: "#8a8a8a" }}>
+                      Members of your team responsible for this client&apos;s success
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <p className="text-xs font-medium mb-2" style={{ color: "#8a8a8a", letterSpacing: "0.32px" }}>Sales Rep</p>
+                        <div className="border rounded-lg p-3" style={{ borderColor: "#e6e6e6", background: "white" }}>
+                          <span className="text-sm" style={{ color: "#212121" }}>{customer.salesRep}</span>
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium mb-2" style={{ color: "#8a8a8a", letterSpacing: "0.32px" }}>Customer Success Executive (CSE)</p>
+                        <div className="border rounded-lg p-3" style={{ borderColor: "#e6e6e6", background: "white" }}>
+                          <span className="text-sm" style={{ color: "#212121" }}>{customer.cse}</span>
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium mb-2" style={{ color: "#8a8a8a", letterSpacing: "0.32px" }}>Estimator</p>
+                        <div className="border rounded-lg p-3" style={{ borderColor: "#e6e6e6", background: "white" }}>
+                          <span className="text-sm" style={{ color: "#212121" }}>{customer.estimator}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Invoicing Information — v0 style with edit toggle */}
+                  <div className="border rounded-lg p-5" style={{ borderColor: "#e6e6e6", borderRadius: "8px" }}>
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-base font-medium" style={{ color: "#212121" }}>Invoicing Information</h3>
+                      {!isEditingInvoice ? (
+                        <Button
+                          variant="outline"
+                          className="text-[#007cb4] border-[#007cb4] hover:bg-[#eaf4ff] rounded-full text-sm h-8 px-3"
+                          onClick={() => setIsEditingInvoice(true)}
+                        >
+                          Edit invoicing settings
+                        </Button>
+                      ) : (
+                        <Button
+                          className="bg-[#212121] hover:opacity-90 text-white rounded-full text-sm h-8 px-4"
+                          onClick={handleSaveInvoiceSettings}
+                        >
+                          Save changes
+                        </Button>
+                      )}
+                    </div>
+
+                    {!isEditingInvoice ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-xs font-medium mb-2" style={{ color: "#8a8a8a", letterSpacing: "0.32px" }}>Invoicing Terms</p>
+                          <div className="border rounded-lg p-3" style={{ borderColor: "#e6e6e6", background: "white" }}>
+                            <span className="text-sm" style={{ color: "#212121" }}>{customer.invoicingTerms}</span>
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium mb-2" style={{ color: "#8a8a8a", letterSpacing: "0.32px" }}>Invoice Email</p>
+                          <div className="border rounded-lg p-3" style={{ borderColor: "#e6e6e6", background: "white" }}>
+                            <span className="text-sm" style={{ color: "#212121" }}>{customer.invoiceEmail}</span>
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium mb-2" style={{ color: "#8a8a8a", letterSpacing: "0.32px" }}>Invoice Trigger</p>
+                          <div className="border rounded-lg p-3" style={{ borderColor: "#e6e6e6", background: "white" }}>
+                            <span className="text-sm" style={{ color: "#212121" }}>
+                              {(() => {
+                                switch (customer.invoiceTrigger) {
+                                  case "automatic": return "Automatic upon shipment"
+                                  case "days_after": return `${customer.daysAfterShipment} days after shipment`
+                                  case "consolidated": return `Consolidated (${customer.consolidationType === "monthly" ? "Monthly" : "Weekly"})`
+                                  case "manual": return "Manual invoicing"
+                                  default: return "Automatic upon shipment"
+                                }
+                              })()}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-white rounded-lg border p-5" style={{ borderColor: "#e6e6e6" }}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <p className="text-xs font-medium" style={{ color: "#383838", letterSpacing: "0.32px" }}>Invoicing Terms</p>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <Info className="h-3.5 w-3.5" style={{ color: "#bdbdbd" }} />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p className="w-60 text-xs">Select the payment terms for this customer&apos;s invoices. This determines when payment is due after the invoice date.</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+                            <Select value={invoiceTerms} onValueChange={handleInvoiceTermsChange}>
+                              <SelectTrigger style={{ borderRadius: "8px" }}>
+                                <SelectValue placeholder="Select invoice terms" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Net 15">Net 15</SelectItem>
+                                <SelectItem value="Net 30">Net 30</SelectItem>
+                                <SelectItem value="Net 45">Net 45</SelectItem>
+                                <SelectItem value="Net 60">Net 60</SelectItem>
+                                <SelectItem value="Due Upon Receipt">Due Upon Receipt</SelectItem>
+                                <SelectItem value="custom">Custom Terms</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            {showCustomTerms && (
+                              <div className="mt-2">
+                                <Input
+                                  placeholder="Enter custom terms"
+                                  value={customTerms}
+                                  onChange={(e) => setCustomTerms(e.target.value)}
+                                  style={{ borderRadius: "8px" }}
+                                />
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <p className="text-xs font-medium mb-2" style={{ color: "#383838", letterSpacing: "0.32px" }}>Invoice Email</p>
+                            <Input
+                              value={invoiceEmail}
+                              onChange={(e) => setInvoiceEmail(e.target.value)}
+                              placeholder="Enter invoice email"
+                              style={{ borderRadius: "8px" }}
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className="flex items-center gap-2 mb-3">
+                            <p className="text-xs font-medium" style={{ color: "#383838", letterSpacing: "0.32px" }}>Invoice Trigger Criteria</p>
+                          </div>
+                          <div className="space-y-3">
+                            <RadioGroup value={invoiceTrigger} onValueChange={setInvoiceTrigger}>
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="automatic" id="inv-automatic" />
+                                <Label htmlFor="inv-automatic" className="flex items-center text-sm">
+                                  Automatic upon shipment
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger>
+                                        <Info className="h-3.5 w-3.5 ml-1" style={{ color: "#bdbdbd" }} />
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p className="w-60 text-xs">Invoices are automatically created when an order is marked as shipped.</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                </Label>
+                              </div>
+
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="days_after" id="inv-days_after" />
+                                <Label htmlFor="inv-days_after" className="flex items-center text-sm">
+                                  X days after shipment
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger>
+                                        <Info className="h-3.5 w-3.5 ml-1" style={{ color: "#bdbdbd" }} />
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p className="w-60 text-xs">Invoices are generated a specified number of days after the order is shipped.</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                </Label>
+                              </div>
+
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="consolidated" id="inv-consolidated" />
+                                <Label htmlFor="inv-consolidated" className="flex items-center text-sm">
+                                  Consolidated invoicing
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger>
+                                        <Info className="h-3.5 w-3.5 ml-1" style={{ color: "#bdbdbd" }} />
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p className="w-60 text-xs">Multiple orders are consolidated into a single invoice on a weekly or monthly basis.</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                </Label>
+                              </div>
+
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="manual" id="inv-manual" />
+                                <Label htmlFor="inv-manual" className="flex items-center text-sm">
+                                  Manual invoicing
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger>
+                                        <Info className="h-3.5 w-3.5 ml-1" style={{ color: "#bdbdbd" }} />
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p className="w-60 text-xs">Invoices are created and triggered by a user action.</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                </Label>
+                              </div>
+                            </RadioGroup>
+
+                            {renderInvoiceTriggerOptions()}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Payment & Credit — editable with Account ID */}
+                  <div className="border rounded-lg p-5" style={{ borderColor: "#e6e6e6", borderRadius: "8px" }}>
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-base font-medium" style={{ color: "#212121" }}>Payment &amp; Credit</h3>
+                      {!isEditingPayment ? (
+                        <Button
+                          variant="outline"
+                          className="text-[#007cb4] border-[#007cb4] hover:bg-[#eaf4ff] rounded-full text-sm h-8 px-3"
+                          onClick={() => setIsEditingPayment(true)}
+                        >
+                          Edit payment settings
+                        </Button>
+                      ) : (
+                        <Button
+                          className="bg-[#212121] hover:opacity-90 text-white rounded-full text-sm h-8 px-4"
+                          onClick={() => setIsEditingPayment(false)}
+                        >
+                          Save changes
+                        </Button>
+                      )}
+                    </div>
+
+                    {!isEditingPayment ? (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <p className="text-xs font-medium mb-2" style={{ color: "#8a8a8a", letterSpacing: "0.32px" }}>Account ID</p>
+                          <div className="border rounded-lg p-3" style={{ borderColor: "#e6e6e6", background: "white" }}>
+                            <span className="text-sm font-mono" style={{ color: "#212121" }}>{customer.accountId}</span>
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium mb-2" style={{ color: "#8a8a8a", letterSpacing: "0.32px" }}>Payment Terms</p>
+                          <div className="border rounded-lg p-3" style={{ borderColor: "#e6e6e6", background: "white" }}>
+                            <span className="text-sm" style={{ color: "#212121" }}>{customer.paymentTerms}</span>
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium mb-2" style={{ color: "#8a8a8a", letterSpacing: "0.32px" }}>Credit Limit</p>
+                          <div className="border rounded-lg p-3" style={{ borderColor: "#e6e6e6", background: "white" }}>
+                            <span className="text-sm" style={{ color: "#212121" }}>{formatCurrency(customer.creditLimit)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <p className="text-xs font-medium mb-2" style={{ color: "#383838", letterSpacing: "0.32px" }}>Account ID</p>
+                          <Input
+                            value={editAccountId}
+                            onChange={(e) => setEditAccountId(e.target.value)}
+                            style={{ borderRadius: "8px" }}
+                          />
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium mb-2" style={{ color: "#383838", letterSpacing: "0.32px" }}>Payment Terms</p>
+                          <Select value={editPaymentTerms} onValueChange={setEditPaymentTerms}>
+                            <SelectTrigger style={{ borderRadius: "8px" }}>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Net 15">Net 15</SelectItem>
+                              <SelectItem value="Net 30">Net 30</SelectItem>
+                              <SelectItem value="Net 45">Net 45</SelectItem>
+                              <SelectItem value="Net 60">Net 60</SelectItem>
+                              <SelectItem value="Due Upon Receipt">Due Upon Receipt</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium mb-2" style={{ color: "#383838", letterSpacing: "0.32px" }}>Credit Limit</p>
+                          <Input
+                            type="number"
+                            value={editCreditLimit}
+                            onChange={(e) => setEditCreditLimit(e.target.value)}
+                            style={{ borderRadius: "8px" }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Contacts */}
                   <div className="border rounded-lg p-5" style={{ borderColor: "#e6e6e6", borderRadius: "8px" }}>
                     <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-base font-medium" style={{ color: "#212121" }}>Contacts</h3>
+                      <h3 className="text-base font-medium" style={{ color: "#212121" }}>Contact List</h3>
                       <Button variant="outline" className="text-[#007cb4] border-[#007cb4] hover:bg-[#eaf4ff] rounded-full text-sm h-8 px-3">
                         + Add Contact
                       </Button>
                     </div>
-                    <div className="space-y-3">
+                    <div className="border rounded-lg overflow-hidden" style={{ borderColor: "#e6e6e6" }}>
+                      <div className="grid grid-cols-3 p-3 font-medium text-xs" style={{ background: "#f7f7f7", color: "#6b6b6b", borderBottom: "1px solid #e6e6e6" }}>
+                        <div>Name</div>
+                        <div>Email</div>
+                        <div>Phone</div>
+                      </div>
                       {customer.contacts.map((contact, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-3 rounded-lg" style={{ background: "#f7f7f7" }}>
-                          <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: "#e6e6e6" }}>
-                              <User className="h-4 w-4" style={{ color: "#525252" }} />
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <p className="text-sm font-medium" style={{ color: "#212121" }}>{contact.name}</p>
-                                {contact.primary && (
-                                  <Badge className="bg-[#eaf4ff] text-[#00527c] hover:bg-[#eaf4ff] text-[10px] px-1.5 py-0">Primary</Badge>
-                                )}
-                              </div>
-                              <p className="text-xs" style={{ color: "#8a8a8a" }}>{contact.role}</p>
-                            </div>
+                        <div key={idx} className="grid grid-cols-3 p-3 text-sm" style={{ borderBottom: idx < customer.contacts.length - 1 ? "1px solid #e6e6e6" : "none" }}>
+                          <div className="flex items-center gap-2">
+                            <span style={{ color: "#212121" }}>{contact.name}</span>
+                            {contact.primary && (
+                              <Badge className="bg-[#eaf4ff] text-[#00527c] hover:bg-[#eaf4ff] text-[10px] px-1.5 py-0">Primary</Badge>
+                            )}
+                            <span className="text-xs" style={{ color: "#8a8a8a" }}>({contact.role})</span>
                           </div>
-                          <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-1 text-xs" style={{ color: "#6b6b6b" }}>
-                              <Mail className="h-3 w-3" />
-                              {contact.email}
-                            </div>
-                            <div className="flex items-center gap-1 text-xs" style={{ color: "#6b6b6b" }}>
-                              <Phone className="h-3 w-3" />
-                              {contact.phone}
-                            </div>
+                          <div style={{ color: "#525252" }}>{contact.email}</div>
+                          <div className="flex justify-between">
+                            <span style={{ color: "#525252" }}>{contact.phone}</span>
+                            {!contact.primary && (
+                              <button className="text-xs" style={{ color: "#007cb4" }}>Mark as primary</button>
+                            )}
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Pricing Tier */}
-                  <div className="border rounded-lg p-5" style={{ borderColor: "#e6e6e6", borderRadius: "8px" }}>
-                    <h3 className="text-base font-medium mb-4" style={{ color: "#212121" }}>Pricing Tier</h3>
-                    <div className="flex gap-3">
-                      {(Object.keys(pricingTiers) as PricingTier[]).map((tier) => (
-                        <div
-                          key={tier}
-                          className="flex-1 p-4 rounded-lg border-2 transition-all cursor-pointer"
-                          style={{
-                            borderColor: customer.tier === tier ? "#212121" : "#e6e6e6",
-                            background: customer.tier === tier ? "#f7f7f7" : "white",
-                          }}
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-medium" style={{ color: "#212121" }}>{tier}</span>
-                            {customer.tier === tier && <Star className="h-4 w-4" style={{ color: "#212121" }} />}
-                          </div>
-                          <p className="text-2xl font-semibold" style={{ color: "#212121" }}>{pricingTiers[tier].discount}%</p>
-                          <p className="text-xs" style={{ color: "#8a8a8a" }}>Auto-discount</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Payment & Credit */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="border rounded-lg p-5" style={{ borderColor: "#e6e6e6", borderRadius: "8px" }}>
-                      <h3 className="text-base font-medium mb-4" style={{ color: "#212121" }}>Payment Terms & Credit</h3>
-                      <div className="space-y-3">
-                        <div>
-                          <p className="text-xs font-medium mb-1" style={{ color: "#8a8a8a", letterSpacing: "0.32px" }}>Payment Terms</p>
-                          <p className="text-sm" style={{ color: "#212121" }}>{customer.paymentTerms}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs font-medium mb-1" style={{ color: "#8a8a8a", letterSpacing: "0.32px" }}>Credit Limit</p>
-                          <p className="text-sm" style={{ color: "#212121" }}>{formatCurrency(customer.creditLimit)}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs font-medium mb-1" style={{ color: "#8a8a8a", letterSpacing: "0.32px" }}>Invoice Email</p>
-                          <p className="text-sm" style={{ color: "#212121" }}>{customer.invoiceEmail}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs font-medium mb-1" style={{ color: "#8a8a8a", letterSpacing: "0.32px" }}>Invoice Trigger</p>
-                          <p className="text-sm" style={{ color: "#212121" }}>
-                            {(() => {
-                              switch (customer.invoiceTrigger) {
-                                case "automatic": return "Automatic upon shipment"
-                                case "days_after": return `${customer.daysAfterShipment} days after shipment`
-                                case "consolidated": return `Consolidated (${customer.consolidationType === "monthly" ? "Monthly" : "Weekly"})`
-                                case "manual": return "Manual invoicing"
-                                default: return "Automatic upon shipment"
-                              }
-                            })()}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Point of Contact */}
-                    <div className="border rounded-lg p-5" style={{ borderColor: "#e6e6e6", borderRadius: "8px" }}>
-                      <h3 className="text-base font-medium mb-4" style={{ color: "#212121" }}>Point of Contact</h3>
-                      <div className="space-y-3">
-                        <div>
-                          <p className="text-xs font-medium mb-1" style={{ color: "#8a8a8a", letterSpacing: "0.32px" }}>Sales Rep</p>
-                          <p className="text-sm" style={{ color: "#212121" }}>{customer.salesRep}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs font-medium mb-1" style={{ color: "#8a8a8a", letterSpacing: "0.32px" }}>Customer Success Executive</p>
-                          <p className="text-sm" style={{ color: "#212121" }}>{customer.cse}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs font-medium mb-1" style={{ color: "#8a8a8a", letterSpacing: "0.32px" }}>Estimator</p>
-                          <p className="text-sm" style={{ color: "#212121" }}>{customer.estimator}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Notification Preferences */}
-                  <div className="border rounded-lg p-5" style={{ borderColor: "#e6e6e6", borderRadius: "8px" }}>
-                    <h3 className="text-base font-medium mb-4" style={{ color: "#212121" }}>Notification Preferences</h3>
-                    <div className="space-y-3">
-                      {[
-                        { key: "orderUpdates" as const, label: "Order Updates", desc: "Notifications when order status changes" },
-                        { key: "invoiceReminders" as const, label: "Invoice Reminders", desc: "Payment reminders and invoice notifications" },
-                        { key: "proofApprovals" as const, label: "Proof Approvals", desc: "Notifications when proofs are ready for review" },
-                        { key: "marketingEmails" as const, label: "Marketing Emails", desc: "Promotional offers and newsletters" },
-                      ].map((pref) => (
-                        <div key={pref.key} className="flex items-center justify-between py-2">
-                          <div>
-                            <p className="text-sm font-medium" style={{ color: "#212121" }}>{pref.label}</p>
-                            <p className="text-xs" style={{ color: "#8a8a8a" }}>{pref.desc}</p>
-                          </div>
-                          <button
-                            className="relative rounded-full transition-colors"
-                            style={{
-                              width: "42px",
-                              height: "24px",
-                              background: customer.notifications[pref.key] ? "#383838" : "#d4d4d4",
-                            }}
-                          >
-                            <span
-                              className="absolute rounded-full bg-white transition-transform"
-                              style={{
-                                width: "18px",
-                                height: "18px",
-                                top: "3px",
-                                left: "3px",
-                                transform: customer.notifications[pref.key] ? "translateX(18px)" : "translateX(0)",
-                                boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
-                              }}
-                            />
-                          </button>
                         </div>
                       ))}
                     </div>
@@ -1176,16 +1316,16 @@ export default function CustomerManagement() {
                   <Input placeholder="+1 555 000 0000" style={{ borderRadius: "8px" }} />
                 </div>
                 <div>
-                  <label className="text-xs font-medium mb-1 block" style={{ color: "#383838", letterSpacing: "0.32px" }}>Pricing Tier</label>
-                  <Select defaultValue="Standard">
+                  <label className="text-xs font-medium mb-1 block" style={{ color: "#383838", letterSpacing: "0.32px" }}>Currency</label>
+                  <Select defaultValue="GBP">
                     <SelectTrigger style={{ borderRadius: "8px" }}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Standard">Standard (0%)</SelectItem>
-                      <SelectItem value="Silver">Silver (5%)</SelectItem>
-                      <SelectItem value="Gold">Gold (10%)</SelectItem>
-                      <SelectItem value="Platinum">Platinum (15%)</SelectItem>
+                      <SelectItem value="GBP">British Poundsterling</SelectItem>
+                      <SelectItem value="USD">US Dollar</SelectItem>
+                      <SelectItem value="EUR">Euro</SelectItem>
+                      <SelectItem value="AUD">Australian Dollar</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
