@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { AlertCircle, Download, Upload, MoreHorizontal, Plus, ArrowUpDown, AlertTriangle, Package, Hash, CalendarClock, ShoppingCart } from "lucide-react"
+import { AlertCircle, Download, Upload, MoreHorizontal, Plus, ArrowUpDown, AlertTriangle, Package, Hash, CalendarClock, ShoppingCart, Send, Eye, Pencil, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useNavigation } from "@/lib/navigation-context"
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, ReferenceLine } from "recharts"
 
@@ -223,6 +224,9 @@ export default function InventoryManagement() {
   const [poQty, setPoQty] = useState("")
   const [poSupplier, setPoSupplier] = useState("")
   const [poSubmitted, setPoSubmitted] = useState(false)
+  const [showPushToEstimator, setShowPushToEstimator] = useState(false)
+  const [pushItem, setPushItem] = useState<typeof paperStock[0] | null>(null)
+  const [pushConfirmed, setPushConfirmed] = useState(false)
 
   const isLowStock = (item: InventoryItem) => {
     const rp = reorderPoints[item.sku] ?? item.reorderPoint
@@ -617,9 +621,21 @@ export default function InventoryManagement() {
                           <Button variant="ghost" size="sm" className="p-0 h-6 w-6" onClick={() => setExpandedSku(isExpanded ? null : item.sku)} title="View lots/serials">
                             <Package className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem><Eye className="h-3.5 w-3.5 mr-2" />View Details</DropdownMenuItem>
+                              <DropdownMenuItem><Pencil className="h-3.5 w-3.5 mr-2" />Edit</DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => { setPushItem(item); setShowPushToEstimator(true); setPushConfirmed(false) }}>
+                                <Send className="h-3.5 w-3.5 mr-2" />Push to AI Estimator
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </td>
                     </tr>
@@ -841,6 +857,59 @@ export default function InventoryManagement() {
                     </Button>
                   </div>
                 </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Push to AI Estimator Dialog */}
+      {showPushToEstimator && pushItem && (
+        <div className="fixed inset-0 flex items-center justify-center" style={{ background: "rgba(33,33,33,0.8)", zIndex: 20001 }} onClick={() => setShowPushToEstimator(false)}>
+          <div className="bg-white w-full max-w-[480px]" style={{ borderRadius: "12px" }} onClick={e => e.stopPropagation()}>
+            <div className="p-5 border-b">
+              <h3 className="text-lg font-semibold" style={{ color: "#212121" }}>Push to AI Estimator</h3>
+              <p className="text-sm mt-1" style={{ color: "#8a8a8a" }}>Add this inventory item as a substrate in the AI Estimator configuration</p>
+            </div>
+            <div className="p-5 space-y-4">
+              <div className="p-3 rounded-lg" style={{ background: "#f7f7f7", border: "1px solid #e6e6e6" }}>
+                <p className="text-sm font-medium" style={{ color: "#212121" }}>{pushItem.name}</p>
+                <p className="text-xs mt-1" style={{ color: "#8a8a8a" }}>{pushItem.weight} &bull; {pushItem.size} &bull; {pushItem.finish}</p>
+              </div>
+              <div>
+                <p className="text-xs font-medium mb-2" style={{ color: "#6b6b6b" }}>Field Mapping</p>
+                <div className="border rounded-lg overflow-hidden" style={{ borderColor: "#e6e6e6" }}>
+                  {[
+                    { from: "Name", to: "Substrate Name", value: pushItem.name },
+                    { from: "Weight", to: "GSM", value: pushItem.weight },
+                    { from: "Size", to: "Size", value: pushItem.size },
+                    { from: "Finish", to: "Color / Finish", value: pushItem.finish },
+                    { from: "Supplier", to: "Supplier", value: pushItem.supplier },
+                  ].map((row, i) => (
+                    <div key={i} className="flex items-center text-sm" style={{ borderBottom: i < 4 ? "1px solid #e6e6e6" : "none" }}>
+                      <div className="p-2.5 flex-1" style={{ color: "#8a8a8a" }}>{row.from}</div>
+                      <div className="px-2" style={{ color: "#bdbdbd" }}>&rarr;</div>
+                      <div className="p-2.5 flex-1 font-medium" style={{ color: "#212121" }}>{row.to}</div>
+                      <div className="p-2.5 flex-1 text-xs" style={{ color: "#525252" }}>{row.value}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {pushConfirmed && (
+                <div className="flex items-center gap-2 p-3 rounded-lg" style={{ background: "#dcfce7", border: "1px solid #16a34a" }}>
+                  <CheckCircle className="h-4 w-4" style={{ color: "#16a34a" }} />
+                  <span className="text-sm font-medium" style={{ color: "#065f46" }}>{pushItem.name} added to AI Estimator substrates</span>
+                </div>
+              )}
+            </div>
+            <div className="p-5 border-t flex justify-between">
+              <Button variant="outline" onClick={() => setShowPushToEstimator(false)} style={{ borderRadius: "999px" }}>
+                {pushConfirmed ? "Close" : "Cancel"}
+              </Button>
+              {!pushConfirmed && (
+                <Button onClick={() => setPushConfirmed(true)} className="bg-[#212121] text-white hover:opacity-90" style={{ borderRadius: "999px" }}>
+                  <Send className="h-4 w-4 mr-2" />Push to Estimator
+                </Button>
               )}
             </div>
           </div>
