@@ -79,14 +79,23 @@ const menuStructure: (MenuSection | "divider")[] = [
     label: "Finishing Machines",
     icon: Scissors,
     children: [
-      { id: "finishing-steps", label: "Finishing Steps" },
       { id: "cut", label: "Cut" },
       { id: "fold", label: "Fold" },
       { id: "crease", label: "Crease" },
       { id: "laminate", label: "Laminate" },
-      { id: "spot-finish", label: "Spot Finish" },
-      { id: "folder-gluer", label: "Folder Gluer" },
-      { id: "custom-finishing", label: "Custom" },
+      { id: "spot-finish", label: "Spot Finishing" },
+      {
+        id: "custom-finishing",
+        label: "Custom",
+        children: [
+          { id: "custom-finish-setup-per-unit", label: "Setup Per Unit" },
+          { id: "custom-finish-machine-labor", label: "Machine Labor Time" },
+          { id: "custom-finish-time-materials", label: "Time and Materials" },
+          { id: "custom-finish-tiered-rate", label: "Tiered Rate" },
+          { id: "custom-finish-perimeter-unit", label: "Perimeter Unit" },
+          { id: "custom-finish-length-speed", label: "Length Speed" },
+        ],
+      },
     ],
   },
   {
@@ -99,23 +108,41 @@ const menuStructure: (MenuSection | "divider")[] = [
       { id: "wire-o", label: "Wire-O" },
       { id: "case-making", label: "Case Making" },
       { id: "pad-glue", label: "Pad Glue" },
-      { id: "custom-price-model", label: "Custom Price Model" },
+      { id: "folder-gluer", label: "Folder Gluer" },
+      {
+        id: "custom-price-model",
+        label: "Custom",
+        children: [
+          { id: "custom-bind-setup-per-unit", label: "Setup Per Unit" },
+          { id: "custom-bind-machine-labor", label: "Machine Labor Time" },
+          { id: "custom-bind-time-materials", label: "Time and Materials" },
+          { id: "custom-bind-tiered-rate", label: "Tiered Rate" },
+          { id: "custom-bind-perimeter-unit", label: "Perimeter Unit" },
+          { id: "custom-bind-length-speed", label: "Length Speed" },
+        ],
+      },
     ],
   },
-  { id: "substrates", label: "Substrates", icon: Layers },
-  { id: "tags", label: "Tags", icon: Tag },
-  { id: "products", label: "Products", icon: Package },
   {
-    id: "categories",
-    label: "Categories",
-    icon: FolderOpen,
+    id: "substrates",
+    label: "Substrates",
+    icon: Layers,
     children: [
-      { id: "category-parts", label: "Category Parts" },
-      { id: "production-steps", label: "Production Steps" },
-      { id: "category-rules", label: "Category Rules" },
+      { id: "substrates-commercial", label: "Commercial Print" },
+      { id: "substrates-large-format", label: "Large Format" },
     ],
   },
-  { id: "field-rules", label: "Field Rules", icon: Wrench },
+  {
+    id: "products",
+    label: "Products",
+    icon: Package,
+    children: [
+      { id: "categories", label: "Categories" },
+      { id: "category-parts", label: "Category Parts" },
+      { id: "field-rules", label: "Field Rules" },
+      { id: "finishing-steps-addon", label: "Finishing Steps Add-On" },
+    ],
+  },
   {
     id: "reference-data",
     label: "Reference Data",
@@ -126,14 +153,7 @@ const menuStructure: (MenuSection | "divider")[] = [
       { id: "page-folds", label: "Page Folds" },
       { id: "page-colors", label: "Page Colors" },
       { id: "die-cut-templates", label: "Die Cut Templates" },
-    ],
-  },
-  { id: "preconfigured-parts", label: "Preconfigured Parts", icon: ClipboardList },
-  {
-    id: "packaging-config",
-    label: "Packaging Config",
-    icon: Box,
-    children: [
+      { id: "packaging-config", label: "Packaging Configuration" },
       { id: "shipping-packages", label: "Shipping Packages" },
       { id: "shipping-methods", label: "Shipping Methods" },
     ],
@@ -278,20 +298,19 @@ const sectionCounts: Record<string, number> = {
   "pad-glue": 1,
   "custom-price-model": 2,
   "substrates": 24,
-  "tags": 8,
+  "substrates-commercial": 18,
+  "substrates-large-format": 6,
   "products": 16,
   "categories": 6,
   "category-parts": 12,
-  "production-steps": 8,
-  "category-rules": 5,
   "field-rules": 10,
+  "finishing-steps-addon": 8,
   "reference-data": 18,
   "finish-sizes": 14,
   "page-limits": 6,
   "page-folds": 5,
   "page-colors": 8,
   "die-cut-templates": 3,
-  "preconfigured-parts": 9,
   "packaging-config": 5,
   "shipping-packages": 6,
   "shipping-methods": 4,
@@ -411,7 +430,7 @@ function getMockRows(id: string): Record<string, string>[] {
       { name: "Komori GL840", type: "Sheet Fed Offset", status: "Maintenance", speed: "16,500 sph", modified: "Mar 10, 2026" },
     ]
   }
-  if (id === "finishing-machines" || id === "finishing-steps" || id === "cut" || id === "fold" || id === "crease" || id === "laminate" || id === "spot-finish" || id === "folder-gluer" || id === "custom-finishing") {
+  if (id === "finishing-machines" || id === "cut" || id === "fold" || id === "crease" || id === "laminate" || id === "spot-finish" || id === "custom-finishing" || id.startsWith("custom-finish-")) {
     return [
       { name: "Polar N 185", type: "Guillotine Cutter", status: "Active", speed: "40 cuts/min", modified: "Mar 19, 2026", priceModel: "Setup + Per Unit", vaBucket: "Machine Cost", vendor: "", rate: "" },
       { name: "Stahlfolder TH 82", type: "Buckle Folder", status: "Active", speed: "30,000 sph", modified: "Mar 17, 2026", priceModel: "Machine Labor Time", vaBucket: "Labour Cost", vendor: "", rate: "" },
@@ -421,14 +440,14 @@ function getMockRows(id: string): Record<string, string>[] {
       { name: "Hot Foil Stamping", type: "Foil Press", status: "Active", speed: "—", modified: "Mar 8, 2026", priceModel: "Tiered Rate", vaBucket: "Outwork Cost", vendor: "FinishPro Veredlung GmbH", rate: "€0.08/imp" },
     ]
   }
-  if (id === "binding-machines" || id === "saddle-stitch" || id === "perfect-bind" || id === "wire-o" || id === "case-making" || id === "pad-glue" || id === "custom-price-model") {
+  if (id === "binding-machines" || id === "saddle-stitch" || id === "perfect-bind" || id === "wire-o" || id === "case-making" || id === "pad-glue" || id === "folder-gluer" || id === "custom-price-model" || id.startsWith("custom-bind-")) {
     return [
       { name: "Muller Martini Presto II", type: "Saddle Stitcher", status: "Active", speed: "14,000 cycles/hr", modified: "Mar 16, 2026", priceModel: "Length & Speed", vaBucket: "Machine Cost", vendor: "", rate: "" },
       { name: "Horizon BQ-480", type: "Perfect Binder", status: "Active", speed: "1,300 books/hr", modified: "Mar 13, 2026", priceModel: "Tiered Rate", vaBucket: "Outwork Cost", vendor: "Bindwell Buchbinderei AG", rate: "€0.85/book" },
       { name: "Rilecart WR-5", type: "Wire-O Binder", status: "Idle", speed: "400 books/hr", modified: "Mar 11, 2026", priceModel: "Tiered Rate", vaBucket: "Outwork Cost", vendor: "Bindwell Buchbinderei AG", rate: "€1.40/book" },
     ]
   }
-  if (id === "substrates") {
+  if (id === "substrates" || id === "substrates-commercial") {
     return [
       { name: "Premium Matte 350gsm", gsm: "350", size: "700x1000mm", color: "White", stock: "12,400 sheets" },
       { name: "Silk Coated 170gsm", gsm: "170", size: "640x900mm", color: "White", stock: "28,000 sheets" },
@@ -436,7 +455,22 @@ function getMockRows(id: string): Record<string, string>[] {
       { name: "Recycled Kraft 300gsm", gsm: "300", size: "SRA3", color: "Brown", stock: "4,200 sheets" },
     ]
   }
-  if (id === "products") {
+  if (id === "substrates-large-format") {
+    return [
+      { name: "Canvas Matte 260gsm", gsm: "260", size: "Roll 1520mm", color: "White", stock: "3 rolls" },
+      { name: "Vinyl Self-Adhesive", gsm: "150", size: "Roll 1370mm", color: "White", stock: "8 rolls" },
+      { name: "Backlit Film 200gsm", gsm: "200", size: "Roll 1270mm", color: "Translucent", stock: "2 rolls" },
+    ]
+  }
+  if (id === "finishing-steps-addon") {
+    return [
+      { name: "Spot UV Coating", category: "Finishing", condition: "Stock > 200gsm", active: "Yes" },
+      { name: "Lamination (Gloss)", category: "Finishing", condition: "Always available", active: "Yes" },
+      { name: "Lamination (Matte)", category: "Finishing", condition: "Always available", active: "Yes" },
+      { name: "Die Cutting", category: "Finishing", condition: "Custom shape selected", active: "Yes" },
+    ]
+  }
+  if (id === "products" || id === "categories") {
     return [
       { name: "Business Cards", category: "Commercial Print", sizeRange: "85x55mm - 90x55mm", active: "Yes" },
       { name: "Brochures", category: "Commercial Print", sizeRange: "A5 - A3", active: "Yes" },
@@ -444,15 +478,7 @@ function getMockRows(id: string): Record<string, string>[] {
       { name: "Booklets", category: "Binding", sizeRange: "A6 - A4", active: "Yes" },
     ]
   }
-  if (id === "tags") {
-    return [
-      { name: "Rush", color: "#ef4444", count: "23" },
-      { name: "VIP Client", color: "#8b5cf6", count: "15" },
-      { name: "Eco-Friendly", color: "#16a34a", count: "31" },
-      { name: "Sample", color: "#2563eb", count: "8" },
-    ]
-  }
-  if (id === "categories" || id === "category-parts" || id === "category-rules") {
+  if (id === "category-parts") {
     return [
       { name: "Commercial Print", type: "Print", parts: "12", active: "Yes" },
       { name: "Large Format", type: "Print", parts: "6", active: "Yes" },
@@ -2320,9 +2346,10 @@ export default function EstimateSetup() {
     if (selectedItem === "shipping-methods") return renderShippingMethods()
 
     // Finishing and binding sections use the outwork-aware table
-    const finishingIds = ["finishing-machines", "finishing-steps", "cut", "fold", "crease", "laminate", "spot-finish", "folder-gluer", "custom-finishing"]
-    const bindingIds = ["binding-machines", "saddle-stitch", "perfect-bind", "wire-o", "case-making", "pad-glue", "custom-price-model"]
-    if (finishingIds.includes(selectedItem) || bindingIds.includes(selectedItem)) {
+    const finishingIds = ["finishing-machines", "cut", "fold", "crease", "laminate", "spot-finish", "custom-finishing"]
+    const bindingIds = ["binding-machines", "saddle-stitch", "perfect-bind", "wire-o", "case-making", "pad-glue", "folder-gluer", "custom-price-model"]
+    const isFinishingOrBinding = finishingIds.includes(selectedItem) || bindingIds.includes(selectedItem) || selectedItem.startsWith("custom-finish-") || selectedItem.startsWith("custom-bind-")
+    if (isFinishingOrBinding) {
       const label = findLabel(selectedItem)
       return renderMachineTableWithOutwork(selectedItem, label)
     }
