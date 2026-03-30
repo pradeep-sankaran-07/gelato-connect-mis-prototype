@@ -60,9 +60,10 @@ import {
 } from "recharts"
 
 // Sub-components
+import dynamic from "next/dynamic"
 import JobProfitability from "@/components/analytics/job-profitability"
 import CustomerProfitability from "@/components/analytics/customer-profitability"
-import CostVarianceReport from "@/components/analytics/cost-variance-report"
+const CostVarianceReport = dynamic(() => import("@/components/analytics/cost-variance-report"), { ssr: false })
 import AnalyticsFilters from "@/components/analytics/analytics-filters"
 
 // --- Mock data ---

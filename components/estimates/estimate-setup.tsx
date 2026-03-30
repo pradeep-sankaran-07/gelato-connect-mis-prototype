@@ -859,51 +859,6 @@ export default function EstimateSetup() {
           })}
         </div>
 
-        {/* Outwork Configuration Summary */}
-        <div className="mt-6 border rounded-lg overflow-hidden" style={{ borderColor: "#007cb4", borderRadius: "8px" }}>
-          <div className="p-4 flex items-center justify-between" style={{ background: "#eaf4ff" }}>
-            <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-lg flex items-center justify-center" style={{ background: "#007cb4" }}>
-                <Send className="h-4 w-4 text-white" />
-              </div>
-              <div>
-                <div className="text-sm font-semibold text-[#00527c]">Outwork Steps</div>
-                <div className="text-xs text-[#007cb4]">5 outsourced steps across 3 vendors — linked to Procurement &gt; Outsourcing</div>
-              </div>
-            </div>
-            <Button variant="outline" size="sm" className="rounded-full text-xs border-[#007cb4] text-[#007cb4] hover:bg-white" onClick={() => navigateTo("outsource-tracking")}>
-              View in Outsourcing &rarr;
-            </Button>
-          </div>
-          <div className="bg-white">
-            <table className="w-full text-sm">
-              <thead>
-                <tr style={{ borderBottom: "1px solid #E5E5E5" }}>
-                  <th className="text-left p-2.5 px-4 text-xs font-medium" style={{ color: "#8a8a8a" }}>Step</th>
-                  <th className="text-left p-2.5 px-4 text-xs font-medium" style={{ color: "#8a8a8a" }}>Vendor</th>
-                  <th className="text-left p-2.5 px-4 text-xs font-medium" style={{ color: "#8a8a8a" }}>Price Model</th>
-                  <th className="text-left p-2.5 px-4 text-xs font-medium" style={{ color: "#8a8a8a" }}>Rate</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  { step: "Spot UV Coating", vendor: "FinishPro Veredlung GmbH", model: "Tiered Rate", rate: "€0.25/sheet" },
-                  { step: "Die Cutting", vendor: "Scandia Die-Cutting ApS", model: "Perimeter + Unit", rate: "€0.12/sheet" },
-                  { step: "Hot Foil Stamping", vendor: "FinishPro Veredlung GmbH", model: "Tiered Rate", rate: "€0.08/imp" },
-                  { step: "Perfect Binding", vendor: "Bindwell Buchbinderei AG", model: "Tiered Rate", rate: "€0.85/book" },
-                  { step: "Wire-O Binding", vendor: "Bindwell Buchbinderei AG", model: "Tiered Rate", rate: "€1.40/book" },
-                ].map((row, i) => (
-                  <tr key={i} style={{ borderBottom: i < 4 ? "1px solid #E5E5E5" : "none" }}>
-                    <td className="p-2.5 px-4 font-medium text-[#212121]">{row.step}</td>
-                    <td className="p-2.5 px-4 text-[#007cb4]">{row.vendor}</td>
-                    <td className="p-2.5 px-4 text-[#6b6b6b]">{row.model}</td>
-                    <td className="p-2.5 px-4 font-medium text-[#212121]">{row.rate}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
       </div>
     )
   }
@@ -2284,14 +2239,14 @@ export default function EstimateSetup() {
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: "1px solid #E5E5E5" }}>
-                {columns.map(col => <th key={col} className="text-left p-3 text-xs font-medium" style={{ background: "#FAFAFA", color: "#8a8a8a" }}>{col}</th>)}
+                {columns.map(col => <th key={col.key} className="text-left p-3 text-xs font-medium" style={{ background: "#FAFAFA", color: "#8a8a8a" }}>{col.header}</th>)}
                 <th className="w-10" style={{ background: "#FAFAFA" }} />
               </tr>
             </thead>
             <tbody>
               {rows.map((row, ri) => (
                 <tr key={ri} className="hover:bg-[#FAFAFA] transition-colors" style={{ borderBottom: ri < rows.length - 1 ? "1px solid #E5E5E5" : "none" }}>
-                  {row.map((cell: string, ci: number) => <td key={ci} className={`p-3 text-sm ${ci === 0 ? "font-medium text-[#212121]" : "text-[#6b6b6b]"}`}>{cell}</td>)}
+                  {columns.map((col, ci) => <td key={col.key} className={`p-3 text-sm ${ci === 0 ? "font-medium text-[#212121]" : "text-[#6b6b6b]"}`}>{row[col.key]}</td>)}
                   <td className="p-3"><Button variant="ghost" size="icon" className="h-7 w-7"><MoreHorizontal className="h-4 w-4 text-[#bdbdbd]" /></Button></td>
                 </tr>
               ))}
