@@ -413,16 +413,19 @@ function getMockRows(id: string): Record<string, string>[] {
   }
   if (id === "finishing-machines" || id === "finishing-steps" || id === "cut" || id === "fold" || id === "crease" || id === "laminate" || id === "spot-finish" || id === "folder-gluer" || id === "custom-finishing") {
     return [
-      { name: "Polar N 185", type: "Guillotine Cutter", status: "Active", speed: "40 cuts/min", modified: "Mar 19, 2026" },
-      { name: "Stahlfolder TH 82", type: "Buckle Folder", status: "Active", speed: "30,000 sph", modified: "Mar 17, 2026" },
-      { name: "Steinemann dmax 106", type: "Laminator", status: "Active", speed: "10,000 sph", modified: "Mar 14, 2026" },
+      { name: "Polar N 185", type: "Guillotine Cutter", status: "Active", speed: "40 cuts/min", modified: "Mar 19, 2026", priceModel: "Setup + Per Unit", vaBucket: "Machine Cost", vendor: "", rate: "" },
+      { name: "Stahlfolder TH 82", type: "Buckle Folder", status: "Active", speed: "30,000 sph", modified: "Mar 17, 2026", priceModel: "Machine Labor Time", vaBucket: "Labour Cost", vendor: "", rate: "" },
+      { name: "Steinemann dmax 106", type: "Laminator", status: "Active", speed: "10,000 sph", modified: "Mar 14, 2026", priceModel: "Time & Materials", vaBucket: "Machine Cost", vendor: "", rate: "" },
+      { name: "Spot UV Coating", type: "Spot Finish", status: "Active", speed: "—", modified: "Mar 12, 2026", priceModel: "Tiered Rate", vaBucket: "Outwork Cost", vendor: "FinishPro Veredlung GmbH", rate: "€0.25/sheet" },
+      { name: "Die Cutting", type: "Die Cut", status: "Active", speed: "—", modified: "Mar 10, 2026", priceModel: "Perimeter + Unit", vaBucket: "Outwork Cost", vendor: "Scandia Die-Cutting ApS", rate: "€0.12/sheet" },
+      { name: "Hot Foil Stamping", type: "Foil Press", status: "Active", speed: "—", modified: "Mar 8, 2026", priceModel: "Tiered Rate", vaBucket: "Outwork Cost", vendor: "FinishPro Veredlung GmbH", rate: "€0.08/imp" },
     ]
   }
   if (id === "binding-machines" || id === "saddle-stitch" || id === "perfect-bind" || id === "wire-o" || id === "case-making" || id === "pad-glue" || id === "custom-price-model") {
     return [
-      { name: "Muller Martini Presto II", type: "Saddle Stitcher", status: "Active", speed: "14,000 cycles/hr", modified: "Mar 16, 2026" },
-      { name: "Horizon BQ-480", type: "Perfect Binder", status: "Active", speed: "1,300 books/hr", modified: "Mar 13, 2026" },
-      { name: "Rilecart WR-5", type: "Wire-O Binder", status: "Idle", speed: "400 books/hr", modified: "Mar 11, 2026" },
+      { name: "Muller Martini Presto II", type: "Saddle Stitcher", status: "Active", speed: "14,000 cycles/hr", modified: "Mar 16, 2026", priceModel: "Length & Speed", vaBucket: "Machine Cost", vendor: "", rate: "" },
+      { name: "Horizon BQ-480", type: "Perfect Binder", status: "Active", speed: "1,300 books/hr", modified: "Mar 13, 2026", priceModel: "Tiered Rate", vaBucket: "Outwork Cost", vendor: "Bindwell Buchbinderei AG", rate: "€0.85/book" },
+      { name: "Rilecart WR-5", type: "Wire-O Binder", status: "Idle", speed: "400 books/hr", modified: "Mar 11, 2026", priceModel: "Tiered Rate", vaBucket: "Outwork Cost", vendor: "Bindwell Buchbinderei AG", rate: "€1.40/book" },
     ]
   }
   if (id === "substrates") {
@@ -854,6 +857,52 @@ export default function EstimateSetup() {
               </button>
             )
           })}
+        </div>
+
+        {/* Outwork Configuration Summary */}
+        <div className="mt-6 border rounded-lg overflow-hidden" style={{ borderColor: "#007cb4", borderRadius: "8px" }}>
+          <div className="p-4 flex items-center justify-between" style={{ background: "#eaf4ff" }}>
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-lg flex items-center justify-center" style={{ background: "#007cb4" }}>
+                <Send className="h-4 w-4 text-white" />
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-[#00527c]">Outwork Steps</div>
+                <div className="text-xs text-[#007cb4]">5 outsourced steps across 3 vendors — linked to Procurement &gt; Outsourcing</div>
+              </div>
+            </div>
+            <Button variant="outline" size="sm" className="rounded-full text-xs border-[#007cb4] text-[#007cb4] hover:bg-white" onClick={() => navigateTo("outsource-tracking")}>
+              View in Outsourcing &rarr;
+            </Button>
+          </div>
+          <div className="bg-white">
+            <table className="w-full text-sm">
+              <thead>
+                <tr style={{ borderBottom: "1px solid #E5E5E5" }}>
+                  <th className="text-left p-2.5 px-4 text-xs font-medium" style={{ color: "#8a8a8a" }}>Step</th>
+                  <th className="text-left p-2.5 px-4 text-xs font-medium" style={{ color: "#8a8a8a" }}>Vendor</th>
+                  <th className="text-left p-2.5 px-4 text-xs font-medium" style={{ color: "#8a8a8a" }}>Price Model</th>
+                  <th className="text-left p-2.5 px-4 text-xs font-medium" style={{ color: "#8a8a8a" }}>Rate</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { step: "Spot UV Coating", vendor: "FinishPro Veredlung GmbH", model: "Tiered Rate", rate: "€0.25/sheet" },
+                  { step: "Die Cutting", vendor: "Scandia Die-Cutting ApS", model: "Perimeter + Unit", rate: "€0.12/sheet" },
+                  { step: "Hot Foil Stamping", vendor: "FinishPro Veredlung GmbH", model: "Tiered Rate", rate: "€0.08/imp" },
+                  { step: "Perfect Binding", vendor: "Bindwell Buchbinderei AG", model: "Tiered Rate", rate: "€0.85/book" },
+                  { step: "Wire-O Binding", vendor: "Bindwell Buchbinderei AG", model: "Tiered Rate", rate: "€1.40/book" },
+                ].map((row, i) => (
+                  <tr key={i} style={{ borderBottom: i < 4 ? "1px solid #E5E5E5" : "none" }}>
+                    <td className="p-2.5 px-4 font-medium text-[#212121]">{row.step}</td>
+                    <td className="p-2.5 px-4 text-[#007cb4]">{row.vendor}</td>
+                    <td className="p-2.5 px-4 text-[#6b6b6b]">{row.model}</td>
+                    <td className="p-2.5 px-4 font-medium text-[#212121]">{row.rate}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     )
@@ -2150,6 +2199,72 @@ export default function EstimateSetup() {
 
   // ─── Route content based on selectedItem ───────────────────
 
+  function renderMachineTableWithOutwork(sectionId: string, sectionLabel: string) {
+    const rows = getMockRows(sectionId)
+    const count = sectionCounts[sectionId] || rows.length
+
+    return (
+      <div className="p-8">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <h2 className="text-xl font-semibold text-[#212121]">{sectionLabel}</h2>
+            <Badge variant="secondary" className="text-xs" style={{ backgroundColor: "#F5F5F5", color: "#6b6b6b" }}>{count} items</Badge>
+          </div>
+          <Button className="bg-[#212121] hover:opacity-90 text-white rounded-full text-sm"><Plus className="h-4 w-4 mr-1" />Add New</Button>
+        </div>
+        <div className="bg-white rounded-lg border overflow-hidden" style={{ borderColor: "#E5E5E5", borderRadius: "8px" }}>
+          <table className="w-full">
+            <thead>
+              <tr style={{ borderBottom: "1px solid #E5E5E5" }}>
+                <th className="text-left p-3 text-xs font-medium" style={{ background: "#FAFAFA", color: "#8a8a8a" }}>Name</th>
+                <th className="text-left p-3 text-xs font-medium" style={{ background: "#FAFAFA", color: "#8a8a8a" }}>Type</th>
+                <th className="text-left p-3 text-xs font-medium" style={{ background: "#FAFAFA", color: "#8a8a8a" }}>Price Model</th>
+                <th className="text-left p-3 text-xs font-medium" style={{ background: "#FAFAFA", color: "#8a8a8a" }}>VA Bucket</th>
+                <th className="text-left p-3 text-xs font-medium" style={{ background: "#FAFAFA", color: "#8a8a8a" }}>Vendor</th>
+                <th className="text-left p-3 text-xs font-medium" style={{ background: "#FAFAFA", color: "#8a8a8a" }}>Rate</th>
+                <th className="text-left p-3 text-xs font-medium" style={{ background: "#FAFAFA", color: "#8a8a8a" }}>Speed</th>
+                <th className="w-10" style={{ background: "#FAFAFA" }} />
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, ri) => {
+                const isOutwork = row.vaBucket === "Outwork Cost"
+                return (
+                  <tr key={ri} className="hover:bg-[#FAFAFA] transition-colors" style={{ borderBottom: ri < rows.length - 1 ? "1px solid #E5E5E5" : "none" }}>
+                    <td className="p-3 text-sm font-medium text-[#212121]">{row.name}</td>
+                    <td className="p-3 text-sm text-[#6b6b6b]">{row.type}</td>
+                    <td className="p-3 text-sm text-[#6b6b6b]">{row.priceModel}</td>
+                    <td className="p-3">
+                      <Badge className={isOutwork ? "bg-[#eaf4ff] text-[#007cb4] hover:bg-[#eaf4ff]" : "bg-[#f5f5f5] text-[#6b6b6b] hover:bg-[#f5f5f5]"} style={{ fontSize: "11px" }}>
+                        {row.vaBucket}
+                      </Badge>
+                    </td>
+                    <td className="p-3 text-sm">
+                      {isOutwork && row.vendor ? (
+                        <button className="text-[#007cb4] hover:underline text-left" onClick={() => navigateTo("vendor-detail", { vendorId: "V-001" })}>{row.vendor}</button>
+                      ) : (
+                        <span className="text-[#bdbdbd]">—</span>
+                      )}
+                    </td>
+                    <td className="p-3 text-sm">
+                      {isOutwork && row.rate ? (
+                        <span className="font-medium text-[#212121]">{row.rate}</span>
+                      ) : (
+                        <span className="text-[#bdbdbd]">—</span>
+                      )}
+                    </td>
+                    <td className="p-3 text-sm text-[#6b6b6b]">{row.speed}</td>
+                    <td className="p-3"><Button variant="ghost" size="icon" className="h-7 w-7"><MoreHorizontal className="h-4 w-4 text-[#bdbdbd]" /></Button></td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    )
+  }
+
   function renderShippingMethods() {
     const columns = getColumnsForSection("shipping-methods")
     const rows = getMockRows("shipping-methods")
@@ -2248,6 +2363,14 @@ export default function EstimateSetup() {
     if (selectedItem === "pending-changes") return renderPendingChanges()
     if (selectedItem === "pricing-rules") return renderPricingRules()
     if (selectedItem === "shipping-methods") return renderShippingMethods()
+
+    // Finishing and binding sections use the outwork-aware table
+    const finishingIds = ["finishing-machines", "finishing-steps", "cut", "fold", "crease", "laminate", "spot-finish", "folder-gluer", "custom-finishing"]
+    const bindingIds = ["binding-machines", "saddle-stitch", "perfect-bind", "wire-o", "case-making", "pad-glue", "custom-price-model"]
+    if (finishingIds.includes(selectedItem) || bindingIds.includes(selectedItem)) {
+      const label = findLabel(selectedItem)
+      return renderMachineTableWithOutwork(selectedItem, label)
+    }
 
     // Everything else is a data table
     const label = findLabel(selectedItem)
