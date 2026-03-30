@@ -205,19 +205,6 @@ export default function OutsourceTracking() {
         </button>
       </div>
 
-      {/* Outwork Info Banner */}
-      <div className="mb-4 p-3 rounded-lg flex items-center justify-between" style={{ background: "#eaf4ff", border: "1px solid #007cb4" }}>
-        <div className="flex items-center gap-2">
-          <Link2 className="h-4 w-4" style={{ color: "#007cb4" }} />
-          <span className="text-sm" style={{ color: "#00527c" }}>
-            <strong>5 outwork steps</strong> linked from Estimate Setup — {linkedSteps.map(l => l.step).join(", ")}
-          </span>
-        </div>
-        <button onClick={() => navigateTo("estimate-setup")} className="text-xs font-medium hover:underline" style={{ color: "#007cb4" }}>
-          View in Estimate Setup &rarr;
-        </button>
-      </div>
-
       {/* Stats Row */}
       <div className="grid grid-cols-4 gap-4 mb-6">
         <div className="border border-neutral-20 rounded-lg p-4">
