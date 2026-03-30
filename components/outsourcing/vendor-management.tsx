@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Plus, Star, Search, Package } from "lucide-react"
+import { Plus, Star, Search, Package, Link2 } from "lucide-react"
 import { useNavigation } from "@/lib/navigation-context"
 
 interface Vendor {
@@ -184,7 +184,7 @@ export default function VendorManagement() {
             </div>
 
             {/* Capabilities */}
-            <div className="flex flex-wrap gap-1.5 mb-4">
+            <div className="flex flex-wrap gap-1.5 mb-3">
               {vendor.capabilities.map((cap) => (
                 <span
                   key={cap}
@@ -194,6 +194,26 @@ export default function VendorManagement() {
                 </span>
               ))}
             </div>
+
+            {/* Linked to Estimate Setup badge */}
+            {(() => {
+              const linkedMap: Record<string, string[]> = {
+                "V-001": ["Perfect Binding", "Wire-O"],
+                "V-002": ["Spot UV"],
+                "V-003": ["Die Cutting"],
+                "V-004": ["Hot Foil Stamping"],
+              }
+              const linked = linkedMap[vendor.id]
+              if (!linked) return null
+              return (
+                <div className="flex items-center gap-1.5 mb-3 px-2.5 py-1.5 rounded-md" style={{ background: "#eaf4ff" }}>
+                  <Link2 className="h-3 w-3 flex-shrink-0" style={{ color: "#007cb4" }} />
+                  <span className="text-xs" style={{ color: "#007cb4" }}>
+                    Linked: {linked.join(", ")} <span className="text-[#8ab4d0]">(Estimate Setup)</span>
+                  </span>
+                </div>
+              )
+            })()}
 
             {/* Performance Metrics */}
             <div className="flex items-center gap-6 pt-3 border-t border-neutral-20">
