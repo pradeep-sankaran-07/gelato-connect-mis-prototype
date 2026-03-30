@@ -13,8 +13,12 @@ import {
   Layers, Tag, Package, FolderOpen, Wrench, Ruler, ClipboardList, Box,
   DollarSign, Settings, Grid3X3, Plus, Search, MoreHorizontal, Pencil,
   Trash2, Globe, ExternalLink, CheckCircle, XCircle, Clock, Copy,
-  Sparkles, Mail, Link2, Eye, Code, Zap, Send, FileDown
+  Sparkles, Mail, Link2, Eye, Code, Zap, Send, FileDown, RefreshCw,
+  Warehouse, HardDrive, Truck, Check
 } from "lucide-react"
+import { Checkbox } from "@/components/ui/checkbox"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Label } from "@/components/ui/label"
 
 // ─── Types ───────────────────────────────────────────────────
 
@@ -562,6 +566,40 @@ export default function EstimateSetup() {
   const [logConnectionFilter, setLogConnectionFilter] = useState("all")
   const [logSearch, setLogSearch] = useState("")
 
+  // Sync state
+  const [substrateSyncEnabled, setSubstrateSyncEnabled] = useState(false)
+  const [machineSyncEnabled, setMachineSyncEnabled] = useState(false)
+  const [substrateSyncCompleted, setSubstrateSyncCompleted] = useState(false)
+  const [machineSyncCompleted, setMachineSyncCompleted] = useState(false)
+  const [showSubstrateSyncWizard, setShowSubstrateSyncWizard] = useState(false)
+  const [showMachineSyncWizard, setShowMachineSyncWizard] = useState(false)
+  const [syncWizardStep, setSyncWizardStep] = useState(1)
+  const [liveShippingRatesEnabled, setLiveShippingRatesEnabled] = useState(false)
+
+  // Substrate sync wizard data
+  const syncSubstrates = [
+    { name: "Premium Matte 350gsm", gsm: "350", size: "700x1000mm", color: "White", selected: true, supplier: "Sappi", action: "create" as const },
+    { name: "Silk Coated 170gsm", gsm: "170", size: "640x900mm", color: "White", selected: true, supplier: "Mondi", action: "create" as const },
+    { name: "Uncoated Bond 120gsm", gsm: "120", size: "A3", color: "Ivory", selected: true, supplier: "Stora Enso", action: "create" as const },
+    { name: "Recycled Kraft 300gsm", gsm: "300", size: "SRA3", color: "Brown", selected: true, supplier: "Mondi", action: "create" as const },
+    { name: "Gloss Art 250gsm", gsm: "250", size: "SRA2", color: "White", selected: true, supplier: "Sappi", action: "create" as const },
+    { name: "Offset Uncoated 100gsm", gsm: "100", size: "B1", color: "White", selected: true, supplier: "Stora Enso", action: "create" as const },
+    { name: "Board 400gsm", gsm: "400", size: "700x1000mm", color: "White", selected: true, supplier: "Sappi", action: "map" as const },
+    { name: "Canvas Matte 260gsm", gsm: "260", size: "Roll 1520mm", color: "White", selected: true, supplier: "Mondi", action: "create" as const },
+  ]
+  const [substrateWizardData, setSubstrateWizardData] = useState(syncSubstrates)
+
+  // Machine sync wizard data
+  const syncMachines = [
+    { name: "HP Indigo 12000 HD", type: "Sheet Fed Digital", speed: "4,600 sph", selected: true, brand: "HP", model: "Indigo 12000 HD", action: "create" as const },
+    { name: "Heidelberg Speedmaster XL 106", type: "Sheet Fed Offset", speed: "18,000 sph", selected: true, brand: "Heidelberg", model: "Speedmaster XL 106", action: "create" as const },
+    { name: "HP PageWide T1190", type: "Web Digital", speed: "305 m/min", selected: true, brand: "HP", model: "PageWide T1190", action: "create" as const },
+    { name: "Polar N 185", type: "Guillotine Cutter", speed: "40 cuts/min", selected: true, brand: "Polar", model: "N 185", action: "map" as const },
+    { name: "Stahlfolder TH 82", type: "Buckle Folder", speed: "35,000 sph", selected: true, brand: "Stahlfolder", model: "TH 82", action: "create" as const },
+    { name: "Muller Martini Presto II", type: "Saddle Stitcher", speed: "14,000 cycles/hr", selected: true, brand: "Muller Martini", model: "Presto II", action: "create" as const },
+  ]
+  const [machineWizardData, setMachineWizardData] = useState(syncMachines)
+
   // ─── Sidebar helpers ───────────────────────────────────────
 
   const toggleSection = (id: string) => {
@@ -979,6 +1017,7 @@ export default function EstimateSetup() {
 
   function renderGeneralSettings() {
     return (
+      <>
       <div className="p-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -1155,8 +1194,369 @@ export default function EstimateSetup() {
               </div>
             </div>
           </div>
+
+          {/* ─── Gelato Connect Sync ─── */}
+          <div className="border-t border-[#E5E5E5] my-8" />
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <RefreshCw className="h-5 w-5 text-[#007cb4]" />
+              <h3 className="text-base font-semibold text-[#212121]">Gelato Connect Sync</h3>
+            </div>
+            <p className="text-sm text-[#8a8a8a] mb-5">Keep your AI Estimator configuration in sync with Gelato Connect MIS. When sync is enabled, items created in Estimate Setup are automatically pushed to the MIS.</p>
+
+            <div className="space-y-4">
+              {/* Substrate Sync */}
+              <div className="border rounded-lg p-5" style={{ borderColor: "#e6e6e6", borderRadius: "8px", background: "#FAFAFA" }}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "#eaf4ff" }}>
+                      <Warehouse className="h-4 w-4 text-[#007cb4]" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-[#212121]">Sync substrates with Inventory</p>
+                      <p className="text-xs text-[#8a8a8a]">Push substrates to Procurement &gt; Inventory Management</p>
+                    </div>
+                  </div>
+                  <Switch checked={substrateSyncEnabled} onCheckedChange={(v) => { setSubstrateSyncEnabled(v); if (!v) return; if (!substrateSyncCompleted) { /* show banner */ } }} />
+                </div>
+                {substrateSyncEnabled && !substrateSyncCompleted && (
+                  <div className="mt-4 p-3 rounded-lg flex items-center justify-between" style={{ background: "#E8F4FD", border: "1px solid #007cb4" }}>
+                    <div className="flex items-center gap-2">
+                      <RefreshCw className="h-4 w-4 text-[#007cb4]" />
+                      <span className="text-sm text-[#00527c]">Initial setup required. Map substrates to suppliers and inventory items.</span>
+                    </div>
+                    <Button size="sm" className="bg-[#007cb4] hover:bg-[#005a87] text-white rounded-full text-xs h-7 px-3" onClick={() => { setShowSubstrateSyncWizard(true); setSyncWizardStep(1); setSubstrateWizardData(syncSubstrates) }}>
+                      Configure Mapping
+                    </Button>
+                  </div>
+                )}
+                {substrateSyncEnabled && substrateSyncCompleted && (
+                  <div className="mt-4 p-3 rounded-lg" style={{ background: "#dcfce7", border: "1px solid #16a34a" }}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-[#16a34a]" />
+                        <div>
+                          <span className="text-sm font-medium text-[#065f46]">Synced — {substrateWizardData.filter(s => s.selected).length} substrates</span>
+                          <p className="text-xs text-[#047857]">Last synced: Mar 30, 2026 09:15 AM</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" className="rounded-full text-xs h-7 px-3 border-[#16a34a] text-[#065f46] hover:bg-[#bbf7d0]" onClick={() => { setShowSubstrateSyncWizard(true); setSyncWizardStep(1) }}>
+                          View Mapping
+                        </Button>
+                        <Button size="sm" className="bg-[#065f46] hover:bg-[#064e3b] text-white rounded-full text-xs h-7 px-3">
+                          <RefreshCw className="h-3 w-3 mr-1" />Re-sync
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Machine Sync */}
+              <div className="border rounded-lg p-5" style={{ borderColor: "#e6e6e6", borderRadius: "8px", background: "#FAFAFA" }}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "#f3e8ff" }}>
+                      <HardDrive className="h-4 w-4 text-[#7c3aed]" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-[#212121]">Sync machines with Machine Park</p>
+                      <p className="text-xs text-[#8a8a8a]">Push machines to Workflow &gt; Machine Park</p>
+                    </div>
+                  </div>
+                  <Switch checked={machineSyncEnabled} onCheckedChange={(v) => { setMachineSyncEnabled(v) }} />
+                </div>
+                {machineSyncEnabled && !machineSyncCompleted && (
+                  <div className="mt-4 p-3 rounded-lg flex items-center justify-between" style={{ background: "#E8F4FD", border: "1px solid #007cb4" }}>
+                    <div className="flex items-center gap-2">
+                      <RefreshCw className="h-4 w-4 text-[#007cb4]" />
+                      <span className="text-sm text-[#00527c]">Initial setup required. Map machines to Machine Park and assign brand/model details.</span>
+                    </div>
+                    <Button size="sm" className="bg-[#007cb4] hover:bg-[#005a87] text-white rounded-full text-xs h-7 px-3" onClick={() => { setShowMachineSyncWizard(true); setSyncWizardStep(1); setMachineWizardData(syncMachines) }}>
+                      Configure Mapping
+                    </Button>
+                  </div>
+                )}
+                {machineSyncEnabled && machineSyncCompleted && (
+                  <div className="mt-4 p-3 rounded-lg" style={{ background: "#dcfce7", border: "1px solid #16a34a" }}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-[#16a34a]" />
+                        <div>
+                          <span className="text-sm font-medium text-[#065f46]">Synced — {machineWizardData.filter(m => m.selected).length} machines</span>
+                          <p className="text-xs text-[#047857]">Last synced: Mar 30, 2026 09:15 AM</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" className="rounded-full text-xs h-7 px-3 border-[#16a34a] text-[#065f46] hover:bg-[#bbf7d0]" onClick={() => { setShowMachineSyncWizard(true); setSyncWizardStep(1) }}>
+                          View Mapping
+                        </Button>
+                        <Button size="sm" className="bg-[#065f46] hover:bg-[#064e3b] text-white rounded-full text-xs h-7 px-3">
+                          <RefreshCw className="h-3 w-3 mr-1" />Re-sync
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* ─── Substrate Sync Wizard ─── */}
+      {showSubstrateSyncWizard && (
+        <div className="fixed inset-0 flex items-center justify-center" style={{ background: "rgba(33,33,33,0.8)", zIndex: 20001 }} onClick={() => setShowSubstrateSyncWizard(false)}>
+          <div className="bg-white w-full max-w-[720px] max-h-[85vh] flex flex-col" style={{ borderRadius: "12px" }} onClick={e => e.stopPropagation()}>
+            <div className="p-5 border-b flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-[#212121]">Sync Substrates to Inventory</h3>
+                <p className="text-sm text-[#8a8a8a] mt-0.5">Step {syncWizardStep} of 3 — {syncWizardStep === 1 ? "Select Substrates" : syncWizardStep === 2 ? "Assign Suppliers" : "Confirm"}</p>
+              </div>
+              <div className="flex items-center gap-1">
+                {[1,2,3].map(s => (
+                  <div key={s} className="h-1.5 rounded-full transition-all" style={{ width: s <= syncWizardStep ? "32px" : "16px", background: s <= syncWizardStep ? "#007cb4" : "#e6e6e6" }} />
+                ))}
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto p-5">
+              {syncWizardStep === 1 && (
+                <div>
+                  <p className="text-sm text-[#525252] mb-4">Select which substrates to sync with Inventory Management. All substrates are selected by default.</p>
+                  <div className="border rounded-lg overflow-hidden" style={{ borderColor: "#e6e6e6" }}>
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr style={{ background: "#f7f7f7", borderBottom: "1px solid #e6e6e6" }}>
+                          <th className="text-left p-3 font-medium text-xs text-[#6b6b6b] w-10"></th>
+                          <th className="text-left p-3 font-medium text-xs text-[#6b6b6b]">Substrate</th>
+                          <th className="text-left p-3 font-medium text-xs text-[#6b6b6b]">GSM</th>
+                          <th className="text-left p-3 font-medium text-xs text-[#6b6b6b]">Size</th>
+                          <th className="text-left p-3 font-medium text-xs text-[#6b6b6b]">Color</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {substrateWizardData.map((s, i) => (
+                          <tr key={i} style={{ borderBottom: "1px solid #e6e6e6" }}>
+                            <td className="p-3"><Checkbox checked={s.selected} onCheckedChange={v => { const d = [...substrateWizardData]; d[i] = {...d[i], selected: !!v}; setSubstrateWizardData(d) }} /></td>
+                            <td className="p-3 font-medium text-[#212121]">{s.name}</td>
+                            <td className="p-3 text-[#525252]">{s.gsm}</td>
+                            <td className="p-3 text-[#525252]">{s.size}</td>
+                            <td className="p-3 text-[#525252]">{s.color}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <p className="text-xs text-[#8a8a8a] mt-3">{substrateWizardData.filter(s => s.selected).length} of {substrateWizardData.length} selected</p>
+                </div>
+              )}
+              {syncWizardStep === 2 && (
+                <div>
+                  <p className="text-sm text-[#525252] mb-4">Assign a supplier for each substrate and choose whether to create a new inventory item or map to an existing one.</p>
+                  <div className="space-y-3">
+                    {substrateWizardData.filter(s => s.selected).map((s, i) => (
+                      <div key={i} className="border rounded-lg p-4" style={{ borderColor: "#e6e6e6" }}>
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-sm font-medium text-[#212121]">{s.name}</span>
+                          <span className="text-xs text-[#8a8a8a]">{s.gsm} gsm &bull; {s.size}</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-xs font-medium text-[#6b6b6b] mb-1 block">Supplier</label>
+                            <Select value={s.supplier} onValueChange={v => { const d = [...substrateWizardData]; const idx = d.findIndex(x => x.name === s.name); d[idx] = {...d[idx], supplier: v}; setSubstrateWizardData(d) }}>
+                              <SelectTrigger className="h-8 text-sm" style={{ borderRadius: "6px" }}><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Sappi">Sappi</SelectItem>
+                                <SelectItem value="Mondi">Mondi</SelectItem>
+                                <SelectItem value="Stora Enso">Stora Enso</SelectItem>
+                                <SelectItem value="Other">Other</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <label className="text-xs font-medium text-[#6b6b6b] mb-1 block">Action</label>
+                            <Select value={s.action} onValueChange={v => { const d = [...substrateWizardData]; const idx = d.findIndex(x => x.name === s.name); d[idx] = {...d[idx], action: v as "create" | "map"}; setSubstrateWizardData(d) }}>
+                              <SelectTrigger className="h-8 text-sm" style={{ borderRadius: "6px" }}><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="create">Create new in Inventory</SelectItem>
+                                <SelectItem value="map">Map to existing item</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {syncWizardStep === 3 && (
+                <div>
+                  <p className="text-sm text-[#525252] mb-4">Review the sync configuration before confirming.</p>
+                  <div className="border rounded-lg overflow-hidden" style={{ borderColor: "#e6e6e6" }}>
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr style={{ background: "#f7f7f7", borderBottom: "1px solid #e6e6e6" }}>
+                          <th className="text-left p-3 font-medium text-xs text-[#6b6b6b]">Substrate</th>
+                          <th className="text-left p-3 font-medium text-xs text-[#6b6b6b]">Supplier</th>
+                          <th className="text-left p-3 font-medium text-xs text-[#6b6b6b]">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {substrateWizardData.filter(s => s.selected).map((s, i) => (
+                          <tr key={i} style={{ borderBottom: "1px solid #e6e6e6" }}>
+                            <td className="p-3 font-medium text-[#212121]">{s.name}</td>
+                            <td className="p-3 text-[#525252]">{s.supplier}</td>
+                            <td className="p-3"><Badge className={s.action === "create" ? "bg-[#eaf4ff] text-[#00527c]" : "bg-[#f3e8ff] text-[#7c3aed]"}>{s.action === "create" ? "Create new" : "Map existing"}</Badge></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="mt-4 p-3 rounded-lg" style={{ background: "#f7f7f7", border: "1px solid #e6e6e6" }}>
+                    <p className="text-sm text-[#525252]">
+                      This will <strong>{substrateWizardData.filter(s => s.selected && s.action === "create").length} create new</strong> and <strong>{substrateWizardData.filter(s => s.selected && s.action === "map").length} map existing</strong> items in Inventory Management.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="p-5 border-t flex justify-between">
+              <Button variant="outline" className="rounded-full" onClick={() => { if (syncWizardStep === 1) setShowSubstrateSyncWizard(false); else setSyncWizardStep(syncWizardStep - 1) }}>
+                {syncWizardStep === 1 ? "Cancel" : "Back"}
+              </Button>
+              <Button className="bg-[#212121] text-white rounded-full hover:opacity-90" onClick={() => { if (syncWizardStep < 3) setSyncWizardStep(syncWizardStep + 1); else { setSubstrateSyncCompleted(true); setShowSubstrateSyncWizard(false); setSyncWizardStep(1) } }}>
+                {syncWizardStep === 3 ? "Confirm Sync" : "Next"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Machine Sync Wizard ─── */}
+      {showMachineSyncWizard && (
+        <div className="fixed inset-0 flex items-center justify-center" style={{ background: "rgba(33,33,33,0.8)", zIndex: 20001 }} onClick={() => setShowMachineSyncWizard(false)}>
+          <div className="bg-white w-full max-w-[720px] max-h-[85vh] flex flex-col" style={{ borderRadius: "12px" }} onClick={e => e.stopPropagation()}>
+            <div className="p-5 border-b flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-[#212121]">Sync Machines to Machine Park</h3>
+                <p className="text-sm text-[#8a8a8a] mt-0.5">Step {syncWizardStep} of 3 — {syncWizardStep === 1 ? "Select Machines" : syncWizardStep === 2 ? "Assign Brand & Model" : "Confirm"}</p>
+              </div>
+              <div className="flex items-center gap-1">
+                {[1,2,3].map(s => (
+                  <div key={s} className="h-1.5 rounded-full transition-all" style={{ width: s <= syncWizardStep ? "32px" : "16px", background: s <= syncWizardStep ? "#7c3aed" : "#e6e6e6" }} />
+                ))}
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto p-5">
+              {syncWizardStep === 1 && (
+                <div>
+                  <p className="text-sm text-[#525252] mb-4">Select which machines to sync with Machine Park.</p>
+                  <div className="border rounded-lg overflow-hidden" style={{ borderColor: "#e6e6e6" }}>
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr style={{ background: "#f7f7f7", borderBottom: "1px solid #e6e6e6" }}>
+                          <th className="text-left p-3 font-medium text-xs text-[#6b6b6b] w-10"></th>
+                          <th className="text-left p-3 font-medium text-xs text-[#6b6b6b]">Machine</th>
+                          <th className="text-left p-3 font-medium text-xs text-[#6b6b6b]">Type</th>
+                          <th className="text-left p-3 font-medium text-xs text-[#6b6b6b]">Speed</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {machineWizardData.map((m, i) => (
+                          <tr key={i} style={{ borderBottom: "1px solid #e6e6e6" }}>
+                            <td className="p-3"><Checkbox checked={m.selected} onCheckedChange={v => { const d = [...machineWizardData]; d[i] = {...d[i], selected: !!v}; setMachineWizardData(d) }} /></td>
+                            <td className="p-3 font-medium text-[#212121]">{m.name}</td>
+                            <td className="p-3 text-[#525252]">{m.type}</td>
+                            <td className="p-3 text-[#525252]">{m.speed}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <p className="text-xs text-[#8a8a8a] mt-3">{machineWizardData.filter(m => m.selected).length} of {machineWizardData.length} selected</p>
+                </div>
+              )}
+              {syncWizardStep === 2 && (
+                <div>
+                  <p className="text-sm text-[#525252] mb-4">Provide brand and model details for each machine. These are required for Machine Park.</p>
+                  <div className="space-y-3">
+                    {machineWizardData.filter(m => m.selected).map((m, i) => (
+                      <div key={i} className="border rounded-lg p-4" style={{ borderColor: "#e6e6e6" }}>
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-sm font-medium text-[#212121]">{m.name}</span>
+                          <Badge className="bg-[#f3e8ff] text-[#7c3aed] text-xs">{m.type}</Badge>
+                        </div>
+                        <div className="grid grid-cols-3 gap-3">
+                          <div>
+                            <label className="text-xs font-medium text-[#6b6b6b] mb-1 block">Brand</label>
+                            <Input value={m.brand} className="h-8 text-sm" style={{ borderRadius: "6px" }} onChange={e => { const d = [...machineWizardData]; const idx = d.findIndex(x => x.name === m.name); d[idx] = {...d[idx], brand: e.target.value}; setMachineWizardData(d) }} />
+                          </div>
+                          <div>
+                            <label className="text-xs font-medium text-[#6b6b6b] mb-1 block">Model</label>
+                            <Input value={m.model} className="h-8 text-sm" style={{ borderRadius: "6px" }} onChange={e => { const d = [...machineWizardData]; const idx = d.findIndex(x => x.name === m.name); d[idx] = {...d[idx], model: e.target.value}; setMachineWizardData(d) }} />
+                          </div>
+                          <div>
+                            <label className="text-xs font-medium text-[#6b6b6b] mb-1 block">Action</label>
+                            <Select value={m.action} onValueChange={v => { const d = [...machineWizardData]; const idx = d.findIndex(x => x.name === m.name); d[idx] = {...d[idx], action: v as "create" | "map"}; setMachineWizardData(d) }}>
+                              <SelectTrigger className="h-8 text-sm" style={{ borderRadius: "6px" }}><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="create">Create new in Machine Park</SelectItem>
+                                <SelectItem value="map">Map to existing machine</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {syncWizardStep === 3 && (
+                <div>
+                  <p className="text-sm text-[#525252] mb-4">Review the sync configuration before confirming.</p>
+                  <div className="border rounded-lg overflow-hidden" style={{ borderColor: "#e6e6e6" }}>
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr style={{ background: "#f7f7f7", borderBottom: "1px solid #e6e6e6" }}>
+                          <th className="text-left p-3 font-medium text-xs text-[#6b6b6b]">Machine</th>
+                          <th className="text-left p-3 font-medium text-xs text-[#6b6b6b]">Brand</th>
+                          <th className="text-left p-3 font-medium text-xs text-[#6b6b6b]">Model</th>
+                          <th className="text-left p-3 font-medium text-xs text-[#6b6b6b]">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {machineWizardData.filter(m => m.selected).map((m, i) => (
+                          <tr key={i} style={{ borderBottom: "1px solid #e6e6e6" }}>
+                            <td className="p-3 font-medium text-[#212121]">{m.name}</td>
+                            <td className="p-3 text-[#525252]">{m.brand}</td>
+                            <td className="p-3 text-[#525252]">{m.model}</td>
+                            <td className="p-3"><Badge className={m.action === "create" ? "bg-[#eaf4ff] text-[#00527c]" : "bg-[#f3e8ff] text-[#7c3aed]"}>{m.action === "create" ? "Create new" : "Map existing"}</Badge></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="mt-4 p-3 rounded-lg" style={{ background: "#f7f7f7", border: "1px solid #e6e6e6" }}>
+                    <p className="text-sm text-[#525252]">
+                      This will <strong>{machineWizardData.filter(m => m.selected && m.action === "create").length} create new</strong> and <strong>{machineWizardData.filter(m => m.selected && m.action === "map").length} map existing</strong> machines in Machine Park.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="p-5 border-t flex justify-between">
+              <Button variant="outline" className="rounded-full" onClick={() => { if (syncWizardStep === 1) setShowMachineSyncWizard(false); else setSyncWizardStep(syncWizardStep - 1) }}>
+                {syncWizardStep === 1 ? "Cancel" : "Back"}
+              </Button>
+              <Button className="bg-[#212121] text-white rounded-full hover:opacity-90" onClick={() => { if (syncWizardStep < 3) setSyncWizardStep(syncWizardStep + 1); else { setMachineSyncCompleted(true); setShowMachineSyncWizard(false); setSyncWizardStep(1) } }}>
+                {syncWizardStep === 3 ? "Confirm Sync" : "Next"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
     )
   }
 
@@ -1750,6 +2150,93 @@ export default function EstimateSetup() {
 
   // ─── Route content based on selectedItem ───────────────────
 
+  function renderShippingMethods() {
+    const columns = getColumnsForSection("shipping-methods")
+    const rows = getMockRows("shipping-methods")
+    const count = sectionCounts["shipping-methods"] || rows.length
+
+    return (
+      <div className="p-8">
+        {/* Shipping Methods Table Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <h2 className="text-xl font-semibold text-[#212121]">Shipping Methods</h2>
+            <Badge variant="secondary" className="text-xs" style={{ backgroundColor: "#F5F5F5", color: "#6b6b6b" }}>{count} items</Badge>
+          </div>
+          <Button className="bg-[#212121] hover:opacity-90 text-white rounded-full text-sm"><Plus className="h-4 w-4 mr-1" />Add New</Button>
+        </div>
+        <div className="bg-white rounded-lg border overflow-hidden" style={{ borderColor: "#E5E5E5", borderRadius: "8px" }}>
+          <table className="w-full">
+            <thead>
+              <tr style={{ borderBottom: "1px solid #E5E5E5" }}>
+                {columns.map(col => <th key={col} className="text-left p-3 text-xs font-medium" style={{ background: "#FAFAFA", color: "#8a8a8a" }}>{col}</th>)}
+                <th className="w-10" style={{ background: "#FAFAFA" }} />
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, ri) => (
+                <tr key={ri} className="hover:bg-[#FAFAFA] transition-colors" style={{ borderBottom: ri < rows.length - 1 ? "1px solid #E5E5E5" : "none" }}>
+                  {row.map((cell: string, ci: number) => <td key={ci} className={`p-3 text-sm ${ci === 0 ? "font-medium text-[#212121]" : "text-[#6b6b6b]"}`}>{cell}</td>)}
+                  <td className="p-3"><Button variant="ghost" size="icon" className="h-7 w-7"><MoreHorizontal className="h-4 w-4 text-[#bdbdbd]" /></Button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Advanced Shipping Settings */}
+        <div className="max-w-4xl mt-8">
+          <div className="border-t border-[#E5E5E5] mb-6" />
+          <h3 className="text-base font-semibold text-[#212121] mb-1 flex items-center gap-2">
+            Advanced Shipping Settings
+            <Badge className="text-[10px] px-2 py-0" style={{ background: "#E8F4FD", color: "#007cb4", border: "1px solid #007cb4" }}>
+              <Sparkles className="h-3 w-3 mr-1 inline" />MIS Only
+            </Badge>
+          </h3>
+          <p className="text-sm text-[#8a8a8a] mb-4">These settings are available to Gelato Connect MIS customers.</p>
+
+          <div className="border rounded-lg p-5" style={{ borderColor: "#e6e6e6", borderRadius: "8px", background: "#FAFAFA" }}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "#fff4d7" }}>
+                  <Zap className="h-4 w-4 text-[#956f00]" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-[#212121]">Enable Live Shipping Rates</p>
+                  <p className="text-xs text-[#8a8a8a]">Get real-time shipping rates from configured carrier accounts in Logistics</p>
+                </div>
+              </div>
+              <Switch checked={liveShippingRatesEnabled} onCheckedChange={setLiveShippingRatesEnabled} />
+            </div>
+            {liveShippingRatesEnabled && (
+              <div className="mt-4 space-y-3">
+                <div className="p-3 rounded-lg" style={{ background: "white", border: "1px solid #e6e6e6" }}>
+                  <p className="text-xs font-medium text-[#6b6b6b] mb-2">Connected Carriers</p>
+                  <div className="space-y-2">
+                    {[
+                      { name: "FedEx", color: "#4D148C" },
+                      { name: "UPS", color: "#351C15" },
+                      { name: "DHL", color: "#D40511" },
+                    ].map(c => (
+                      <div key={c.name} className="flex items-center gap-2">
+                        <Check className="h-3.5 w-3.5 text-[#16a34a]" />
+                        <span className="text-sm text-[#212121]">{c.name}</span>
+                        <Badge className="text-[9px] px-1.5 py-0 bg-[#dcfce7] text-[#065f46]">Connected</Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <p className="text-xs text-[#8a8a8a]">
+                  Rates are fetched from <span className="text-[#007cb4] cursor-pointer hover:underline" onClick={() => navigateTo("shipping-rate-tables")}>Logistics &gt; Shipping Rates</span>. Manage carriers in <span className="text-[#007cb4] cursor-pointer hover:underline" onClick={() => navigateTo("carrier-accounts")}>Carrier Accounts</span>.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   function renderContent() {
     if (!selectedItem) return renderHomeContent()
 
@@ -1760,6 +2247,7 @@ export default function EstimateSetup() {
     if (selectedItem === "connections") return renderConnections()
     if (selectedItem === "pending-changes") return renderPendingChanges()
     if (selectedItem === "pricing-rules") return renderPricingRules()
+    if (selectedItem === "shipping-methods") return renderShippingMethods()
 
     // Everything else is a data table
     const label = findLabel(selectedItem)

@@ -11,10 +11,13 @@ import {
   Zap,
   Clock,
   ChevronRight,
+  Send,
+  CheckCircle,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useNavigation } from "@/lib/navigation-context"
 
 // ── Machine data ───────────────────────────────────────────────────────
@@ -154,6 +157,10 @@ const statusCounts = {
 export default function MachinePark() {
   const { navigateTo } = useNavigation()
   const [searchTerm, setSearchTerm] = useState("")
+  const [showPushToEstimator, setShowPushToEstimator] = useState(false)
+  const [pushMachine, setPushMachine] = useState<Machine | null>(null)
+  const [pushCategory, setPushCategory] = useState("print-machines-sheet-fed-digital")
+  const [pushConfirmed, setPushConfirmed] = useState(false)
 
   const filteredMachines = machines.filter(
     (m) =>
@@ -242,7 +249,16 @@ export default function MachinePark() {
                     </div>
                     <Badge className="bg-neutral-10 text-neutral-70 rounded-md text-xs mt-1.5">{machine.type}</Badge>
                   </div>
-                  <ChevronRight className="h-4 w-4 text-neutral-40 group-hover:text-neutral-70 transition-colors mt-1" />
+                  <div className="flex items-center gap-1">
+                    <button
+                      className="p-1.5 rounded-md hover:bg-neutral-10 transition-colors"
+                      title="Push to AI Estimator"
+                      onClick={(e) => { e.stopPropagation(); setPushMachine(machine); setShowPushToEstimator(true); setPushConfirmed(false); setPushCategory("print-machines-sheet-fed-digital") }}
+                    >
+                      <Send className="h-3.5 w-3.5 text-neutral-40 hover:text-[#007cb4]" />
+                    </button>
+                    <ChevronRight className="h-4 w-4 text-neutral-40 group-hover:text-neutral-70 transition-colors mt-1" />
+                  </div>
                 </div>
 
                 {/* Current job */}
@@ -294,6 +310,63 @@ export default function MachinePark() {
           })}
         </div>
       </div>
+
+      {/* Push to AI Estimator Dialog */}
+      {showPushToEstimator && pushMachine && (
+        <div className="fixed inset-0 flex items-center justify-center" style={{ background: "rgba(33,33,33,0.8)", zIndex: 20001 }} onClick={() => setShowPushToEstimator(false)}>
+          <div className="bg-white w-full max-w-[480px]" style={{ borderRadius: "12px" }} onClick={e => e.stopPropagation()}>
+            <div className="p-5 border-b">
+              <h3 className="text-lg font-semibold" style={{ color: "#212121" }}>Push to AI Estimator</h3>
+              <p className="text-sm mt-1" style={{ color: "#8a8a8a" }}>Add this machine to the AI Estimator configuration</p>
+            </div>
+            <div className="p-5 space-y-4">
+              <div className="p-3 rounded-lg" style={{ background: "#f7f7f7", border: "1px solid #e6e6e6" }}>
+                <p className="text-sm font-medium" style={{ color: "#212121" }}>{pushMachine.name}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge className="bg-neutral-10 text-neutral-70 text-xs">{pushMachine.type}</Badge>
+                  <span className="text-xs" style={{ color: "#8a8a8a" }}>{pushMachine.capabilities.slice(0, 3).join(", ")}</span>
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-medium mb-1.5 block" style={{ color: "#6b6b6b" }}>Estimator Category</label>
+                <Select value={pushCategory} onValueChange={setPushCategory}>
+                  <SelectTrigger style={{ borderRadius: "8px" }}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="print-machines-sheet-fed-digital">Print Machines &gt; Sheet Fed Digital</SelectItem>
+                    <SelectItem value="print-machines-sheet-fed-offset">Print Machines &gt; Sheet Fed Offset</SelectItem>
+                    <SelectItem value="print-machines-web-digital">Print Machines &gt; Web Digital</SelectItem>
+                    <SelectItem value="print-machines-web-offset">Print Machines &gt; Web Offset</SelectItem>
+                    <SelectItem value="print-machines-roll-fed">Print Machines &gt; Large Format Roll Fed</SelectItem>
+                    <SelectItem value="finishing-cut">Finishing Machines &gt; Cut</SelectItem>
+                    <SelectItem value="finishing-fold">Finishing Machines &gt; Fold</SelectItem>
+                    <SelectItem value="finishing-laminate">Finishing Machines &gt; Laminate</SelectItem>
+                    <SelectItem value="binding-saddle-stitch">Binding Machines &gt; Saddle Stitch</SelectItem>
+                    <SelectItem value="binding-perfect-bind">Binding Machines &gt; Perfect Bind</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {pushConfirmed && (
+                <div className="flex items-center gap-2 p-3 rounded-lg" style={{ background: "#dcfce7", border: "1px solid #16a34a" }}>
+                  <CheckCircle className="h-4 w-4" style={{ color: "#16a34a" }} />
+                  <span className="text-sm font-medium" style={{ color: "#065f46" }}>{pushMachine.name} added to AI Estimator</span>
+                </div>
+              )}
+            </div>
+            <div className="p-5 border-t flex justify-between">
+              <Button variant="outline" onClick={() => setShowPushToEstimator(false)} style={{ borderRadius: "999px" }}>
+                {pushConfirmed ? "Close" : "Cancel"}
+              </Button>
+              {!pushConfirmed && (
+                <Button onClick={() => setPushConfirmed(true)} className="bg-[#212121] text-white hover:opacity-90" style={{ borderRadius: "999px" }}>
+                  <Send className="h-4 w-4 mr-2" />Push to Estimator
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
