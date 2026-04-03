@@ -22,6 +22,9 @@ import { useNavigation } from "@/lib/navigation-context"
 export default function Shipments() {
   const { navigateTo } = useNavigation()
   const [activeTab, setActiveTab] = useState("orders")
+  const [sourceFilter, setSourceFilter] = useState<string[]>(["Estimate", "Store Link", "API"])
+  const [showSourceDropdown, setShowSourceDropdown] = useState(false)
+  const toggleSource = (source: string) => { setSourceFilter(prev => prev.includes(source) ? prev.filter(s => s !== source) : [...prev, source]) }
 
   return (
     <div className="flex-1 overflow-auto">
@@ -90,6 +93,22 @@ export default function Shipments() {
                   Add filter
                   <ChevronDown className="h-4 w-4 ml-2" />
                 </Button>
+                <div className="relative">
+                  <Button variant="outline" size="sm" onClick={() => setShowSourceDropdown(!showSourceDropdown)}>
+                    {sourceFilter.length === 3 ? "All Sources" : `Source (${sourceFilter.length}/3)`}
+                    <ChevronDown className="h-4 w-4 ml-1" />
+                  </Button>
+                  {showSourceDropdown && (
+                    <div className="absolute top-full left-0 mt-1 bg-white border rounded-lg shadow-lg z-10 w-48 py-1" onClick={e => e.stopPropagation()}>
+                      {["Estimate", "Store Link", "API"].map(source => (
+                        <label key={source} className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-neutral-5 cursor-pointer">
+                          <Checkbox checked={sourceFilter.includes(source)} onCheckedChange={() => toggleSource(source)} />
+                          <span className="flex items-center gap-2">{source}<span className={`inline-block w-2 h-2 rounded-full ${source === "Estimate" ? "bg-[#007cb4]" : source === "Store Link" ? "bg-[#7c3aed]" : "bg-[#065f46]"}`} /></span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 <Button variant="ghost" size="sm">
                   Clear
                 </Button>
@@ -125,6 +144,9 @@ export default function Shipments() {
                         Status
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-neutral-50 uppercase tracking-wider">
+                        Source
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-neutral-50 uppercase tracking-wider">
                         Shipping Method
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-neutral-50 uppercase tracking-wider">
@@ -154,6 +176,9 @@ export default function Shipments() {
                         <Badge variant="outline" className="bg-success-10 text-success-90 border-green-200">
                           Successful
                         </Badge>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium" style={{ background: '#f3e8ff', color: '#7c3aed' }}>Store Link</span>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm flex items-center">
                         <Package className="h-4 w-4 mr-2 text-neutral-50" />
@@ -196,6 +221,9 @@ export default function Shipments() {
                           Successful
                         </Badge>
                       </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium" style={{ background: '#eaf4ff', color: '#007cb4' }}>Estimate</span>
+                      </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm flex items-center">
                         <Truck className="h-4 w-4 mr-2 text-neutral-50" />
                         XPO LTL Standard
@@ -237,6 +265,9 @@ export default function Shipments() {
                           Successful
                         </Badge>
                       </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium" style={{ background: '#dcfce7', color: '#065f46' }}>API</span>
+                      </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm flex items-center">
                         <Palette className="h-4 w-4 mr-2 text-neutral-50" />
                         DB Schenker Standard Pallet
@@ -277,6 +308,9 @@ export default function Shipments() {
                         <Badge variant="outline" className="bg-success-10 text-success-90 border-green-200">
                           Successful
                         </Badge>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium" style={{ background: '#eaf4ff', color: '#007cb4' }}>Estimate</span>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm flex items-center">
                         <Package className="h-4 w-4 mr-2 text-neutral-50" />
