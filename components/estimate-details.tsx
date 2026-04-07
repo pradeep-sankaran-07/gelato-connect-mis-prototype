@@ -51,7 +51,7 @@ export default function EstimateDetails() {
   }
 
   const handleConvertToOrder = () => {
-    setShowConvertModal(true)
+    navigateTo("convert-to-order", { estimateId: "EST-2025-003" })
   }
 
   const handleConfirmConvert = () => {

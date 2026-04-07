@@ -62,6 +62,7 @@ export type Screen =
   | "job-ticket-detail"
   | "manual-job-ticket"
   | "reprint"
+  | "convert-to-order"
 
 interface NavigationState {
   currentScreen: Screen
