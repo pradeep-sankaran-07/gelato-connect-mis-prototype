@@ -28,6 +28,9 @@ export const mockJobTickets: JobTicket[] = [
     dueDate: "2025-09-25T17:00:00Z",
     priority: "high",
     specialInstructions: "FSC-certified stock. Split delivery: 1500 Munich, 500 London.",
+    aiSummary: "",
+    aiSummaryEdited: false,
+    aiSummaryEditHistory: [],
     materials: [
       { id: "mr-001-1", materialId: "mat-silk-170", name: "170gsm Silk Coated", specification: "SRA3 sheets, FSC certified", quantityNeeded: 8500, unit: "sheets", quantityAllocated: 8500, status: "reserved", supplier: "Papyrus GmbH", unitCost: 0.12, totalCost: 1020 },
       { id: "mr-001-2", materialId: "mat-silk-350", name: "350gsm Silk Cover", specification: "SRA3 sheets, FSC certified", quantityNeeded: 550, unit: "sheets", quantityAllocated: 550, status: "reserved", supplier: "Papyrus GmbH", unitCost: 0.38, totalCost: 209 },
@@ -58,6 +61,9 @@ export const mockJobTickets: JobTicket[] = [
     dueDate: "2025-12-05T17:00:00Z",
     priority: "normal",
     specialInstructions: "Pack in boxes of 250. Each box labelled with customer name.",
+    aiSummary: "",
+    aiSummaryEdited: false,
+    aiSummaryEditHistory: [],
     materials: [
       { id: "mr-002-1", materialId: "mat-silk-400", name: "400gsm Silk Card", specification: "SRA3 sheets", quantityNeeded: 4200, unit: "sheets", quantityAllocated: 4200, status: "reserved", supplier: "Papyrus GmbH", unitCost: 0.45, totalCost: 1890 },
     ],
@@ -89,6 +95,9 @@ export const mockJobTickets: JobTicket[] = [
     dueDate: "2025-12-15T17:00:00Z",
     priority: "high",
     specialInstructions: "Pantone 186C spot colour. Proof approved. Split delivery: 3000 Vienna, 2000 Salzburg.",
+    aiSummary: "",
+    aiSummaryEdited: false,
+    aiSummaryEditHistory: [],
     materials: [
       { id: "mr-003-1", materialId: "mat-silk-150", name: "150gsm Silk Coated", specification: "SRA2 sheets", quantityNeeded: 30000, unit: "sheets", quantityAllocated: 30000, status: "reserved", supplier: "Papyrus GmbH", unitCost: 0.18, totalCost: 5400 },
       { id: "mr-003-2", materialId: "mat-art-300", name: "300gsm Art Board", specification: "SRA2 sheets", quantityNeeded: 1400, unit: "sheets", quantityAllocated: 1400, status: "reserved", supplier: "Papyrus GmbH", unitCost: 0.52, totalCost: 728 },
@@ -121,6 +130,9 @@ export const mockJobTickets: JobTicket[] = [
     dueDate: "2025-09-30T17:00:00Z",
     priority: "high",
     specialInstructions: "Colour match to 2021 vintage. Labels on 76mm cores, 1000/roll.",
+    aiSummary: "",
+    aiSummaryEdited: false,
+    aiSummaryEditHistory: [],
     materials: [
       { id: "mr-005-1", materialId: "mat-label-textured", name: "Textured Self-Adhesive Label Stock", specification: "Rolls, 250mm wide", quantityNeeded: 120, unit: "metres", quantityAllocated: 120, status: "reserved", supplier: "Avery Dennison", unitCost: 3.50, totalCost: 420 },
     ],
@@ -149,6 +161,9 @@ export const mockJobTickets: JobTicket[] = [
     dueDate: "2025-12-01T17:00:00Z",
     priority: "normal",
     specialInstructions: "Shrink-wrap cartons.",
+    aiSummary: "",
+    aiSummaryEdited: false,
+    aiSummaryEditHistory: [],
     materials: [
       { id: "mr-007-1", materialId: "mat-gloss-170", name: "170gsm Gloss Coated", specification: "SRA3 sheets", quantityNeeded: 3200, unit: "sheets", quantityAllocated: 3200, status: "reserved", supplier: "Papyrus GmbH", unitCost: 0.08, totalCost: 256 },
     ],
@@ -181,6 +196,9 @@ export const mockJobTickets: JobTicket[] = [
     dueDate: "2025-12-10T17:00:00Z",
     priority: "high",
     specialInstructions: "Badges have variable data. Deliver to ExCeL London loading bay.",
+    aiSummary: "",
+    aiSummaryEdited: false,
+    aiSummaryEditHistory: [],
     materials: [
       { id: "mr-008-1", materialId: "mat-silk-150", name: "150gsm Silk Coated", specification: "SRA3 sheets", quantityNeeded: 5000, unit: "sheets", quantityAllocated: 5000, status: "reserved", supplier: "Papyrus GmbH", unitCost: 0.10, totalCost: 500 },
       { id: "mr-008-2", materialId: "mat-silk-300", name: "300gsm Silk Cover", specification: "SRA3 sheets", quantityNeeded: 700, unit: "sheets", quantityAllocated: 700, status: "reserved", supplier: "Papyrus GmbH", unitCost: 0.35, totalCost: 245 },
@@ -211,6 +229,9 @@ export const mockJobTickets: JobTicket[] = [
     dueDate: "2025-12-20T17:00:00Z",
     priority: "normal",
     specialInstructions: "Ship flat, do not roll. Colour accuracy critical.",
+    aiSummary: "",
+    aiSummaryEdited: false,
+    aiSummaryEditHistory: [],
     materials: [
       { id: "mr-009-1", materialId: "mat-silk-200", name: "200gsm Silk Coated", specification: "B1 sheets", quantityNeeded: 1600, unit: "sheets", quantityAllocated: 1600, status: "reserved", supplier: "Papyrus GmbH", unitCost: 0.55, totalCost: 880 },
     ],
@@ -241,6 +262,9 @@ export const mockJobTickets: JobTicket[] = [
     dueDate: "2025-12-08T17:00:00Z",
     priority: "normal",
     specialInstructions: "Match brand colours to annual report.",
+    aiSummary: "",
+    aiSummaryEdited: false,
+    aiSummaryEditHistory: [],
     materials: [
       { id: "mr-011-1", materialId: "mat-silk-170", name: "170gsm Silk Coated", specification: "SRA3 sheets", quantityNeeded: 1500, unit: "sheets", quantityAllocated: 1500, status: "reserved", supplier: "Papyrus GmbH", unitCost: 0.12, totalCost: 180 },
     ],
@@ -271,6 +295,9 @@ export const mockJobTickets: JobTicket[] = [
     dueDate: "2025-12-18T17:00:00Z",
     priority: "normal",
     specialInstructions: "Exact reprint. Use same dies and colour settings as JOB-2025-005.",
+    aiSummary: "",
+    aiSummaryEdited: false,
+    aiSummaryEditHistory: [],
     materials: [
       { id: "mr-012-1", materialId: "mat-label-textured", name: "Textured Self-Adhesive Label Stock", specification: "Rolls, 250mm wide", quantityNeeded: 50, unit: "metres", quantityAllocated: 50, status: "reserved", supplier: "Avery Dennison", unitCost: 3.50, totalCost: 175 },
     ],
@@ -299,6 +326,9 @@ export const mockJobTickets: JobTicket[] = [
     dueDate: "2025-11-05T17:00:00Z",
     priority: "low",
     specialInstructions: "",
+    aiSummary: "",
+    aiSummaryEdited: false,
+    aiSummaryEditHistory: [],
     materials: [
       { id: "mr-013-1", materialId: "mat-uncoated-120", name: "120gsm Uncoated", specification: "SRA3 sheets", quantityNeeded: 1700, unit: "sheets", quantityAllocated: 1700, status: "reserved", supplier: "Papyrus GmbH", unitCost: 0.06, totalCost: 102 },
     ],
@@ -327,6 +357,9 @@ export const mockJobTickets: JobTicket[] = [
     dueDate: "2025-12-12T17:00:00Z",
     priority: "normal",
     specialInstructions: "10 designs, 500 each. Supply on A4 sheets, kiss-cut.",
+    aiSummary: "",
+    aiSummaryEdited: false,
+    aiSummaryEditHistory: [],
     materials: [
       { id: "mr-014-1", materialId: "mat-vinyl-sa", name: "Vinyl Self-Adhesive", specification: "SRA3 sheets, gloss white", quantityNeeded: 600, unit: "sheets", quantityAllocated: 600, status: "reserved", supplier: "Avery Dennison", unitCost: 0.85, totalCost: 510 },
     ],
@@ -355,6 +388,9 @@ export const mockJobTickets: JobTicket[] = [
     dueDate: "2025-11-15T17:00:00Z",
     priority: "low",
     specialInstructions: "Round corners. Pack in boxes of 250.",
+    aiSummary: "",
+    aiSummaryEdited: false,
+    aiSummaryEditHistory: [],
     materials: [
       { id: "mr-015-1", materialId: "mat-uncoated-350", name: "350gsm Uncoated Card", specification: "SRA3 sheets", quantityNeeded: 450, unit: "sheets", quantityAllocated: 450, status: "reserved", supplier: "Papyrus GmbH", unitCost: 0.38, totalCost: 171 },
     ],
@@ -385,6 +421,9 @@ export const mockJobTickets: JobTicket[] = [
     dueDate: "2026-01-10T17:00:00Z",
     priority: "normal",
     specialInstructions: "Fire-retardant certification required. Deliver to Brussels Expo stand B42.",
+    aiSummary: "",
+    aiSummaryEdited: false,
+    aiSummaryEditHistory: [],
     materials: [
       { id: "mr-016-1", materialId: "mat-pvc-440", name: "440gsm PVC Banner Material", specification: "Rolls, 850mm wide", quantityNeeded: 30, unit: "metres", quantityAllocated: 0, status: "ordered", supplier: "SignSupply BV", unitCost: 4.20, totalCost: 126 },
       { id: "mr-016-2", materialId: "mat-polyester-fabric", name: "Polyester Display Fabric", specification: "Rolls, 3200mm wide", quantityNeeded: 12, unit: "metres", quantityAllocated: 0, status: "ordered", supplier: "SignSupply BV", unitCost: 8.50, totalCost: 102 },
@@ -418,6 +457,9 @@ export const mockJobTickets: JobTicket[] = [
     dueDate: "2026-01-15T17:00:00Z",
     priority: "high",
     specialInstructions: "On hold — awaiting client sample approval before proceeding to print.",
+    aiSummary: "",
+    aiSummaryEdited: false,
+    aiSummaryEditHistory: [],
     materials: [
       { id: "mr-017-1", materialId: "mat-art-150", name: "150gsm Art Paper", specification: "SRA2 sheets", quantityNeeded: 4000, unit: "sheets", quantityAllocated: 0, status: "available", supplier: "Papyrus GmbH", unitCost: 0.15, totalCost: 600 },
       { id: "mr-017-2", materialId: "mat-greyboard-2mm", name: "2mm Greyboard", specification: "B1 sheets", quantityNeeded: 1800, unit: "sheets", quantityAllocated: 0, status: "available", supplier: "Papyrus GmbH", unitCost: 0.95, totalCost: 1710 },
