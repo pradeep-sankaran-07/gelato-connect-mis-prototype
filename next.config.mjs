@@ -1,5 +1,5 @@
 /** @type {import('next').NextConfig} */
-const basePath = ''
+const basePath = '/connect-mis-prototype'
 const nextConfig = {
   output: 'export',
   basePath,
