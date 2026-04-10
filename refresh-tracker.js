@@ -171,20 +171,34 @@ async function jiraFetch(endpoint, params = {}) {
   return res.json();
 }
 
+async function jiraSearchJql(jql, fields, startAt = 0, maxResults = 100) {
+  const auth = Buffer.from(`${JIRA_EMAIL}:${JIRA_API_TOKEN}`).toString("base64");
+  const url = `${JIRA_BASE_URL}/rest/api/3/search/jql`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: `Basic ${auth}`,
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ jql, fields, startAt, maxResults }),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Jira search API ${res.status}: ${body}`);
+  }
+  return res.json();
+}
+
 async function fetchStoriesForEpic(epicKey) {
   const jql = `"Epic Link" = ${epicKey} ORDER BY key ASC`;
-  const fields = "key,summary,status,duedate,assignee";
+  const fields = ["summary", "status", "duedate", "assignee"];
   let allIssues = [];
   let startAt = 0;
   const maxResults = 100;
 
   while (true) {
-    const data = await jiraFetch("search", {
-      jql,
-      fields,
-      startAt: String(startAt),
-      maxResults: String(maxResults),
-    });
+    const data = await jiraSearchJql(jql, fields, startAt, maxResults);
     allIssues = allIssues.concat(data.issues || []);
     if (startAt + maxResults >= data.total) break;
     startAt += maxResults;
