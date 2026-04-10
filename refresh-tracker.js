@@ -83,6 +83,62 @@ const WORKSTREAM_DEFS = [
   },
 ];
 
+// ─── Project Milestones ───
+const MILESTONES = [
+  { name: "E2E PoC + Prototypes", date: "2026-04-10" },
+  { name: "50% Core Features", date: "2026-04-17" },
+  { name: "100% Core + Pilot Testing", date: "2026-04-24" },
+  { name: "Go-Live (11 Customers)", date: "2026-05-01" },
+];
+
+// ─── Project Context (from PRD & Development Plan) ───
+// This drives PM-quality assessments beyond mechanical status counting.
+const PROJECT_CONTEXT = {
+  // Business stakes: $850K+ in signed MIS deals, 11 customers going live May 1
+  goLiveDate: "2026-05-01",
+  signedDeals: "$850K+",
+  signedCustomers: 11,
+
+  // Dependency chain: upstream must deliver before downstream can ship
+  // Key: work stream id → array of upstream dependency ids
+  dependencies: {
+    cross: [],
+    ws1a: ["cross"],
+    ws1b: ["cross"],
+    ws2: ["ws1a", "ws1b"],
+    ws3a: ["ws2"],
+    ws3b: ["ws2"],
+    ws4: ["ws1a", "ws1b", "ws2", "ws3a", "ws3b"],
+  },
+
+  // Phase 1 scope per work stream — what MUST ship by May 1
+  scope: {
+    cross: "Quote-to-order E2E flow: API contracts, auth, estimation, quote persistence, order creation",
+    ws1a: "Estimation configurator: categories, products, machines, pricing rules, estimation API. Blocks all downstream quoting.",
+    ws1b: "Widget SDK: product selection, quantity inputs, real-time pricing, quote builder, theming, file receipt & proofing triggers",
+    ws2: "Production tracking UI: estimation page, category browser, spec forms, price breakdown, quote flow. Station views with 99.9% uptime.",
+    ws3a: "Order management: quote-to-order conversion, status tracking, modification workflow, approval process, shipping with manual lookup tables",
+    ws3b: "Production planning engine + monitoring: scheduling, capacity, materials, bottleneck detection, real-time tracking, alerts",
+    ws4: "Invoicing & billing: generation, templates, tax calc, payment tracking, credit notes, approval workflow, ERP integration (QuickBooks/Dynamics/Sage)",
+  },
+
+  // Key acceptance criteria thresholds from PRD
+  acceptanceCriteria: {
+    quoteToOrderConversion: "< 5 seconds",
+    pageLoads: "< 2 seconds",
+    statusUpdatePropagation: "< 1 second",
+    labelGeneration: "< 30 seconds",
+    invoiceGeneration: "< 5 seconds",
+    fileUpload: "500MB with progress",
+    coreActionsMaxClicks: 3,
+    stationViewUptime: "99.9%",
+    noITExpertiseRequired: true,
+  },
+
+  // ICP constraints: PSPs with EUR 300K-5M revenue, no dedicated IT staff
+  icpConstraint: "All core features must be configurable by non-technical print shop admin without IT support. Simplicity trumps everything.",
+};
+
 // ─── Status Weight Map ───
 const STATUS_WEIGHTS = {
   Done: 100,
@@ -198,7 +254,8 @@ function formatDeadline(dateStr) {
   return `${months[d.getMonth()]} ${d.getDate()}`;
 }
 
-function assessWorkStream(ws, stories, progress) {
+// assessWorkStream now takes assessedMap (id→status) for dependency checking
+function assessWorkStream(ws, stories, progress, assessedMap) {
   const total = stories.length;
   const counts = countByStatus(stories);
   const done = counts["Done"] || 0;
@@ -207,7 +264,6 @@ function assessWorkStream(ws, stories, progress) {
   const inProgress = counts["In Progress"] || 0;
   const selected = counts["Selected"] || 0;
   const backlog = counts["Backlog"] || 0;
-  const active = onStaging + inReview + inProgress;
 
   const daysLeft = daysUntil(ws.deadline);
   const deadlineStr = formatDeadline(ws.deadline);
@@ -223,6 +279,13 @@ function assessWorkStream(ws, stories, progress) {
   const pastDue = stories.filter(
     (s) => s.dueDate && new Date(s.dueDate) < now && s.status !== "Done"
   ).length;
+
+  // Check upstream dependency health
+  const deps = PROJECT_CONTEXT.dependencies[ws.id] || [];
+  const blockedUpstream = deps.filter(
+    (depId) => assessedMap[depId] === "OFF_TRACK" || assessedMap[depId] === "BEHIND"
+  );
+  const upstreamOffTrack = deps.filter((depId) => assessedMap[depId] === "OFF_TRACK");
 
   // ─── Status Decision Matrix ───
   let status;
@@ -249,11 +312,21 @@ function assessWorkStream(ws, stories, progress) {
     status = "ON_TRACK";
   }
 
+  // Upstream dependency escalation: if an upstream WS is off-track/behind,
+  // this WS cannot be better than AT_RISK regardless of own metrics
+  if (upstreamOffTrack.length > 0 && status === "ON_TRACK") {
+    status = "AT_RISK";
+  } else if (blockedUpstream.length > 0 && status === "ON_TRACK") {
+    status = "AT_RISK";
+  }
+
   // ─── Reason Text ───
   const parts = [];
 
   // Deadline context
-  if (daysLeft <= 0) {
+  if (daysLeft < 0) {
+    parts.push(`Past due (was ${deadlineStr}).`);
+  } else if (daysLeft === 0) {
     parts.push(`Due today (${deadlineStr}).`);
   } else if (daysLeft === 1) {
     parts.push(`Due tomorrow (${deadlineStr}).`);
@@ -271,6 +344,21 @@ function assessWorkStream(ws, stories, progress) {
   if (backlog > 0) breakdown.push(`${backlog} in backlog`);
   parts.push(`${breakdown.join(", ")} (${total} total).`);
 
+  // Dependency risk callout
+  if (upstreamOffTrack.length > 0) {
+    const names = upstreamOffTrack.map((id) => {
+      const def = WORKSTREAM_DEFS.find((w) => w.id === id);
+      return def ? def.id.toUpperCase() : id;
+    });
+    parts.push(`Blocked by upstream: ${names.join(", ")} off track.`);
+  } else if (blockedUpstream.length > 0) {
+    const names = blockedUpstream.map((id) => {
+      const def = WORKSTREAM_DEFS.find((w) => w.id === id);
+      return def ? def.id.toUpperCase() : id;
+    });
+    parts.push(`Upstream risk: ${names.join(", ")} behind schedule.`);
+  }
+
   // Risk callouts
   if (missingDueDates) {
     parts.push(`${storiesWithoutDueDate} stories missing due dates.`);
@@ -280,6 +368,12 @@ function assessWorkStream(ws, stories, progress) {
   }
   if (progress === 0 && total > 0) {
     parts.push("Zero progress.");
+  }
+
+  // Scope context from PRD
+  const scope = PROJECT_CONTEXT.scope[ws.id];
+  if (scope && progress === 0) {
+    parts.push(`Phase 1 scope: ${scope}`);
   }
 
   // Actionable note
@@ -297,10 +391,11 @@ function assessWorkStream(ws, stories, progress) {
 function generateOverallAssessment(workstreams) {
   const offTrack = workstreams.filter((ws) => ws.status === "OFF_TRACK").length;
   const behind = workstreams.filter((ws) => ws.status === "BEHIND").length;
+  const atRisk = workstreams.filter((ws) => ws.status === "AT_RISK").length;
   const onTrack = workstreams.filter((ws) => ws.status === "ON_TRACK").length;
   const totalWS = workstreams.length;
 
-  const goLiveDays = daysUntil("2026-05-01");
+  const goLiveDays = daysUntil(PROJECT_CONTEXT.goLiveDate);
   const totalStories = workstreams.reduce(
     (acc, ws) => acc + ws.epics.reduce((a, e) => a + e.stories.length, 0),
     0
@@ -326,14 +421,14 @@ function generateOverallAssessment(workstreams) {
 
   const parts = [];
 
-  // Overall health
+  // Overall health with business context
   if (offTrack + behind > totalWS / 2) {
     parts.push(
-      `Project is off track for May 1 delivery. ${offTrack} work stream${offTrack !== 1 ? "s" : ""} off track, ${behind} behind, ${onTrack} on track.`
+      `Project is off track for May 1 go-live (${PROJECT_CONTEXT.signedDeals} in signed deals, ${PROJECT_CONTEXT.signedCustomers} customers). ${offTrack} of ${totalWS} work streams off track, ${behind} behind.`
     );
   } else if (offTrack > 0) {
     parts.push(
-      `${offTrack} work stream${offTrack !== 1 ? "s" : ""} off track, ${behind} behind. ${goLiveDays} days to go-live.`
+      `${offTrack} work stream${offTrack !== 1 ? "s" : ""} off track, ${behind} behind. ${goLiveDays} days to contractual go-live with ${PROJECT_CONTEXT.signedCustomers} customers.`
     );
   } else if (behind > 0) {
     parts.push(
@@ -341,17 +436,32 @@ function generateOverallAssessment(workstreams) {
     );
   } else {
     parts.push(
-      `All work streams on track or at risk. ${goLiveDays} days to go-live.`
+      `All ${totalWS} work streams on track or at risk. ${goLiveDays} days to go-live.`
     );
   }
 
   // Story stats
+  const donePercent = totalStories > 0 ? Math.round((doneStories / totalStories) * 100) : 0;
   parts.push(
-    `${doneStories} of ${totalStories} stories done, ${backlogStories} in backlog.`
+    `${doneStories} of ${totalStories} stories done (${donePercent}%), ${backlogStories} in backlog.`
   );
 
+  // Critical path analysis
+  const criticalPathWS = ["cross", "ws1a", "ws1b"];
+  const criticalPathBlocked = criticalPathWS.filter((id) => {
+    const ws = workstreams.find((w) => w.id === id);
+    return ws && (ws.status === "OFF_TRACK" || ws.status === "BEHIND");
+  });
+  if (criticalPathBlocked.length > 0) {
+    parts.push(
+      `Critical path blocked: ${criticalPathBlocked.map((id) => id.toUpperCase()).join(", ")} delays cascade to all downstream work streams.`
+    );
+  }
+
   // Recommendation
-  if (offTrack >= 2) {
+  if (offTrack >= 3) {
+    parts.push("Immediate executive escalation and scope cut required to protect May 1 date.");
+  } else if (offTrack >= 2) {
     parts.push("Immediate escalation and re-scoping recommended.");
   } else if (offTrack === 1) {
     parts.push("Escalation needed for off-track work stream.");
@@ -360,6 +470,23 @@ function generateOverallAssessment(workstreams) {
   }
 
   return parts.join(" ");
+}
+
+// ─── Milestone Status Calculation ───
+function computeMilestoneStatuses() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return MILESTONES.map((m) => {
+    const mDate = new Date(m.date);
+    mDate.setHours(0, 0, 0, 0);
+    const diff = mDate - today;
+    let status;
+    if (diff < 0) status = "done";
+    else if (diff === 0) status = "today";
+    else status = "upcoming";
+    return { name: m.name, date: m.date, status };
+  });
 }
 
 // ─── HTML Update ───
@@ -385,6 +512,14 @@ function updateHTML(htmlContent, workstreams, overallAssessment) {
   htmlContent = htmlContent.replace(
     /const WORKSTREAMS = \[[\s\S]*?\n\];/,
     `const WORKSTREAMS = ${wsStr};`
+  );
+
+  // Update MILESTONES with dynamic statuses
+  const milestones = computeMilestoneStatuses();
+  const msStr = JSON.stringify(milestones, null, 2);
+  htmlContent = htmlContent.replace(
+    /const MILESTONES = \[[\s\S]*?\n\];/,
+    `const MILESTONES = ${msStr};`
   );
 
   // Update overall assessment text
@@ -414,7 +549,10 @@ async function main() {
   }
 
   // 1. Pull Jira data for each work stream
+  // Process in definition order (which follows dependency chain: cross → ws1a/ws1b → ws2 → ws3a/ws3b → ws4)
   const workstreams = [];
+  const assessedMap = {}; // id → status, for dependency checking
+
   for (const wsDef of WORKSTREAM_DEFS) {
     console.log(`  Fetching data for ${wsDef.id} (${wsDef.name})...`);
     const epics = [];
@@ -437,7 +575,10 @@ async function main() {
     // Flatten all stories across epics for assessment
     const allStories = epics.flatMap((e) => e.stories);
     const progress = calculateProgress(allStories);
-    const assessment = assessWorkStream(wsDef, allStories, progress);
+    const assessment = assessWorkStream(wsDef, allStories, progress, assessedMap);
+
+    // Record this WS status so downstream WSes can check it
+    assessedMap[wsDef.id] = assessment.status;
 
     workstreams.push({
       id: wsDef.id,
