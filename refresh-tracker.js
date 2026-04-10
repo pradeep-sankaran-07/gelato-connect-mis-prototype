@@ -171,9 +171,11 @@ async function jiraFetch(endpoint, params = {}) {
   return res.json();
 }
 
-async function jiraSearchJql(jql, fields, startAt = 0, maxResults = 100) {
+async function jiraSearchJql(jql, fields, nextPageToken, maxResults = 100) {
   const auth = Buffer.from(`${JIRA_EMAIL}:${JIRA_API_TOKEN}`).toString("base64");
   const url = `${JIRA_BASE_URL}/rest/api/3/search/jql`;
+  const body = { jql, fields, maxResults };
+  if (nextPageToken) body.nextPageToken = nextPageToken;
   const res = await fetch(url, {
     method: "POST",
     headers: {
@@ -181,11 +183,11 @@ async function jiraSearchJql(jql, fields, startAt = 0, maxResults = 100) {
       Accept: "application/json",
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ jql, fields, startAt, maxResults }),
+    body: JSON.stringify(body),
   });
   if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Jira search API ${res.status}: ${body}`);
+    const text = await res.text();
+    throw new Error(`Jira search API ${res.status}: ${text}`);
   }
   return res.json();
 }
@@ -194,14 +196,13 @@ async function fetchStoriesForEpic(epicKey) {
   const jql = `"Epic Link" = ${epicKey} ORDER BY key ASC`;
   const fields = ["summary", "status", "duedate", "assignee"];
   let allIssues = [];
-  let startAt = 0;
-  const maxResults = 100;
+  let nextPageToken = null;
 
   while (true) {
-    const data = await jiraSearchJql(jql, fields, startAt, maxResults);
+    const data = await jiraSearchJql(jql, fields, nextPageToken, 100);
     allIssues = allIssues.concat(data.issues || []);
-    if (startAt + maxResults >= data.total) break;
-    startAt += maxResults;
+    if (!data.nextPageToken) break;
+    nextPageToken = data.nextPageToken;
   }
 
   return allIssues.map((issue) => {
