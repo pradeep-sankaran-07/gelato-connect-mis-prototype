@@ -73,6 +73,8 @@ export interface Estimate {
   tax: number
   total: number
   convertedOrderId?: string
+  convertedAt?: string
+  convertedBy?: string
   estimator: string
   notes: string
 }
@@ -178,6 +180,7 @@ export interface ProductionStep {
   completedAt?: string
   operatorName?: string
   notes: string
+  annotations: StepAnnotation[]
   isParallel: boolean
   isOptional: boolean
   vendorId?: string
@@ -206,7 +209,24 @@ export interface JobTicket {
   dueDate: string
   priority: "low" | "normal" | "high" | "urgent"
   specialInstructions: string
+  aiSummary: string
+  aiSummaryEdited: boolean
+  aiSummaryEditHistory: AiSummaryEditRecord[]
   materials: MaterialRequirement[]
+}
+
+export interface StepAnnotation {
+  id: string
+  text: string
+  author: string
+  createdAt: string
+  updatedAt?: string
+}
+
+export interface AiSummaryEditRecord {
+  editedAt: string
+  editedBy: string
+  previousText: string
 }
 
 export interface MaterialRequirement {

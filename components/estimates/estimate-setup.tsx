@@ -19,6 +19,11 @@ import {
 import { Checkbox } from "@/components/ui/checkbox"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
+import PackagingMaterials from "@/components/estimates/shipping/packaging-materials"
+import PackagingRulesSetup from "@/components/estimates/shipping/packaging-rules"
+import DestinationZones from "@/components/estimates/shipping/destination-zones"
+import ShippingMethodsConfig from "@/components/estimates/shipping/shipping-methods"
+import ShippingRulesSetup from "@/components/estimates/shipping/shipping-rules"
 
 // ─── Types ───────────────────────────────────────────────────
 
@@ -143,6 +148,19 @@ const menuStructure: (MenuSection | "divider")[] = [
       { id: "finishing-steps-addon", label: "Finishing Steps Add-On" },
     ],
   },
+  "divider" as const,
+  {
+    id: "shipping",
+    label: "Shipping",
+    icon: Truck,
+    children: [
+      { id: "packaging-materials-setup", label: "Packaging Materials" },
+      { id: "packaging-rules-setup", label: "Packaging Rules" },
+      { id: "destination-zones", label: "Destination Zones" },
+      { id: "shipping-methods-setup", label: "Shipping Methods" },
+      { id: "shipping-rules-setup", label: "Shipping Rules" },
+    ],
+  },
   {
     id: "reference-data",
     label: "Reference Data",
@@ -154,8 +172,6 @@ const menuStructure: (MenuSection | "divider")[] = [
       { id: "page-colors", label: "Page Colors" },
       { id: "die-cut-templates", label: "Die Cut Templates" },
       { id: "packaging-config", label: "Packaging Configuration" },
-      { id: "shipping-packages", label: "Shipping Packages" },
-      { id: "shipping-methods", label: "Shipping Methods" },
     ],
   },
   "divider" as const,
@@ -312,8 +328,11 @@ const sectionCounts: Record<string, number> = {
   "page-colors": 8,
   "die-cut-templates": 3,
   "packaging-config": 5,
-  "shipping-packages": 6,
-  "shipping-methods": 4,
+  "packaging-materials-setup": 11,
+  "packaging-rules-setup": 5,
+  "destination-zones": 6,
+  "shipping-methods-setup": 12,
+  "shipping-rules-setup": 5,
   "pricing-rules": 5,
 }
 
@@ -2343,7 +2362,12 @@ export default function EstimateSetup() {
     if (selectedItem === "connections") return renderConnections()
     if (selectedItem === "pending-changes") return renderPendingChanges()
     if (selectedItem === "pricing-rules") return renderPricingRules()
-    if (selectedItem === "shipping-methods") return renderShippingMethods()
+    // Shipping section
+    if (selectedItem === "packaging-materials-setup") return <PackagingMaterials />
+    if (selectedItem === "packaging-rules-setup") return <PackagingRulesSetup />
+    if (selectedItem === "destination-zones") return <DestinationZones />
+    if (selectedItem === "shipping-methods-setup") return <ShippingMethodsConfig />
+    if (selectedItem === "shipping-rules-setup") return <ShippingRulesSetup />
 
     // Finishing and binding sections use the outwork-aware table
     const finishingIds = ["finishing-machines", "cut", "fold", "crease", "laminate", "spot-finish", "custom-finishing"]

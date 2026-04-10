@@ -48,6 +48,7 @@ import MachinePark from "@/components/machines/machine-park"
 import MachineDetail from "@/components/machines/machine-detail"
 import CommunicationSettings from "@/components/communication/communication-settings"
 import NotificationTemplateEditor from "@/components/communication/notification-template-editor"
+import ConvertToOrder from "@/components/convert-to-order"
 
 function AppContent() {
   const { currentScreen, params } = useNavigation()
@@ -83,6 +84,8 @@ function AppContent() {
         return <CreateEstimate />
       case "estimate-setup":
         return <EstimateSetup />
+      case "convert-to-order":
+        return <ConvertToOrder estimateId={params.estimateId || ""} />
       case "orders":
         return <ManageOrders />
       case "order-detail":

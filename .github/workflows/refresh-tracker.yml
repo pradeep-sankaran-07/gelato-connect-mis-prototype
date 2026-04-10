@@ -1,0 +1,27 @@
+name: Refresh MIS Tracker
+
+on:
+  schedule:
+    - cron: '0 */4 * * *'  # Every 4 hours UTC
+  workflow_dispatch:  # Manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Refresh tracker data from Jira
+        env:
+          JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          JIRA_BASE_URL: https://gelato.atlassian.net
+          CI: 'true'
+        run: node refresh-tracker.js
