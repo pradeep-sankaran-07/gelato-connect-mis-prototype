@@ -18,7 +18,7 @@
 // ─── MIS Phase 1 Progress Tracker Dashboard ───
 // GNX/ConeUI Design System — Gelato Connect MIS
 
-const LAST_UPDATED = "2026-04-10T10:50:50Z";
+const LAST_UPDATED = "2026-04-10T12:00:00Z";
 const PHASE1_DEADLINE = "2026-05-01";
 const JIRA_BASE = "https://gelato.atlassian.net/browse";
 
@@ -151,8 +151,8 @@ const WORKSTREAMS = [
     ownerFull: "Nilesh",
     team: "GCWB team",
     status: "AT_RISK",
-    reason: "22% progress with 20 days left to Apr 30. 2 on staging, 1 in review, but 3 stories past due (GCWB-2495 Apr 8, GCWB-2507 Apr 7, GCWB-2575 Apr 9). 7 of 12 still in backlog.",
-    progress: 22,
+    reason: "24% progress, 20 days to Apr 30. 2 On Staging, GCWB-2575 advanced to In Review. 3 stories past individual due dates (GCWB-2495 Apr 8, GCWB-2507 Apr 7, GCWB-2541 Apr 1). 7 of 12 still in Backlog.",
+    progress: 24,
     deadline: "2026-04-30",
     epics: [
       {
@@ -172,7 +172,7 @@ const WORKSTREAMS = [
           { key: "GCWB-2541", summary: "[BE] Execute workflow by workflowID", assignee: "Valentin", status: "On Staging", dueDate: "2026-04-01" },
           { key: "GCWB-2542", summary: "[BE] Endpoint to create a workflow", assignee: "Valentin", status: "On Staging", dueDate: "2026-04-02" },
           { key: "GCWB-2547", summary: "Upload feature in manage order page", assignee: "Vlad", status: "Backlog", dueDate: "2026-04-15" },
-          { key: "GCWB-2575", summary: "Feature to include configurable \"wait\" mechanism as WF activity", assignee: "Valentin", status: "In Progress", dueDate: "2026-04-09" },
+          { key: "GCWB-2575", summary: "Feature to include configurable \"wait\" mechanism as WF activity", assignee: "Valentin", status: "In Review", dueDate: "2026-04-09" },
         ],
       },
     ],
@@ -184,8 +184,8 @@ const WORKSTREAMS = [
     ownerFull: "Felix",
     team: "GNX team",
     status: "BEHIND",
-    reason: "Due Apr 17 \u2014 7 days left. 17 stories total across 2 epics. MIS-20: 4 in review, 1 in progress (Marharyta active). GNX-8466: all 12 in backlog with no due dates. Station views making progress but outsourcing not started.",
-    progress: 16,
+    reason: "Due Apr 17 — 7 days left. All 5 production station views now In Review (GNX-8484 advanced). New story GNX-8552 added. 13 of 18 stories still in Backlog — outsourcing & production tracker not started.",
+    progress: 17,
     deadline: "2026-04-17",
     epics: [
       {
@@ -198,7 +198,7 @@ const WORKSTREAMS = [
           { key: "GNX-8481", summary: "[PRODUCTION STATIONS] Station job detail - add Specifications panel for MIS jobs", assignee: "Marharyta", status: "In Review", dueDate: "2026-04-14" },
           { key: "GNX-8482", summary: "[PRODUCTION STATIONS] Station job detail - add Materials Needed panel for MIS jobs", assignee: "Marharyta", status: "In Review", dueDate: "2026-04-14" },
           { key: "GNX-8483", summary: "[PRODUCTION STATIONS] Station job detail - add Step Instructions panel for MIS jobs", assignee: "Marharyta", status: "In Review", dueDate: "2026-04-14" },
-          { key: "GNX-8484", summary: "[PRODUCTION STATIONS] Station job detail - add Special Handling panel for MIS jobs", assignee: "Marharyta", status: "In Progress", dueDate: "2026-04-14" },
+          { key: "GNX-8484", summary: "[PRODUCTION STATIONS] Station job detail - add Special Handling panel for MIS jobs", assignee: "Marharyta", status: "In Review", dueDate: "2026-04-14" },
         ],
       },
       {
@@ -219,6 +219,7 @@ const WORKSTREAMS = [
           { key: "GNX-8500", summary: "[Outsourcing] Outsource Status Tracker and Mark as Received", assignee: "Mujahid", status: "Backlog", dueDate: null },
           { key: "GNX-8501", summary: "[Outsourcing] Station View: Blocked Step Display for Outsourced Jobs", assignee: "Mujahid", status: "Backlog", dueDate: null },
           { key: "GNX-8550", summary: "[PRODUCTION TRACKER] API: Job Overview endpoint with filters and pagination", assignee: "Maxim", status: "Backlog", dueDate: null },
+          { key: "GNX-8552", summary: "[Prod. Station] [Placeholder] Display Order Source and Special Notes fields on MIS production station view", assignee: "Wojciech", status: "Backlog", dueDate: null },
         ],
       },
     ],
@@ -230,8 +231,8 @@ const WORKSTREAMS = [
     ownerFull: "Kian",
     team: "GCL team",
     status: "AT_RISK",
-    reason: "24% progress — 2 done, 1 in progress, 1 selected, but 6 of 10 still in backlog. 14 days to deadline Apr 24. Due dates cluster Apr 14-23 with no buffer.",
-    progress: 24,
+    reason: "29% progress — GCL-3150 advanced to On Staging. 2 Done, 1 On Staging, 1 Selected, but 6 of 10 still in Backlog. 14 days to Apr 24. GCL-3151 and GCL-3199 due Apr 16 not yet started.",
+    progress: 29,
     deadline: "2026-04-24",
     epics: [
       {
@@ -244,7 +245,7 @@ const WORKSTREAMS = [
           { key: "GCL-3128", summary: "Extend packaging materials with MIS required fields.", assignee: "Vipul", status: "Backlog", dueDate: null },
           { key: "GCL-3148", summary: "Prepare API documentation for AI Estimator team", assignee: "Alexey", status: "Done", dueDate: null },
           { key: "GCL-3149", summary: "Prepare Quote Endpoint Docs", assignee: "Alexey", status: "Done", dueDate: null },
-          { key: "GCL-3150", summary: "Extend Shipping Rules for Packaging Materials", assignee: "Alexey", status: "In Progress", dueDate: "2026-04-10" },
+          { key: "GCL-3150", summary: "Extend Shipping Rules for Packaging Materials", assignee: "Alexey", status: "On Staging", dueDate: "2026-04-10" },
           { key: "GCL-3151", summary: "Support PSP-Created Methods custom shipping methods", assignee: "Alexey", status: "Backlog", dueDate: "2026-04-16" },
           { key: "GCL-3197", summary: "Packaging Rules Adaptation", assignee: "Alexey", status: "Selected", dueDate: "2026-04-14" },
           { key: "GCL-3199", summary: "Destination Zone Creation", assignee: "Hamza", status: "Backlog", dueDate: "2026-04-16" },
@@ -261,10 +262,25 @@ const WORKSTREAMS = [
     ownerFull: "Vipul",
     team: "GCP team",
     status: "OFF_TRACK",
-    reason: "All 5 stories in Backlog. Zero progress. Only GCP-3743 has a due date (Apr 13). 14 days to deadline Apr 24.",
+    reason: "All 12 stories across 2 epics in Backlog — zero progress. GCP-3695 (inventory/stock) adds 7 stories. Only GCP-3743 has a due date (Apr 13, past). 14 days to Apr 24 with no development started.",
     progress: 0,
     deadline: "2026-04-24",
     epics: [
+      {
+        key: "GCP-3695",
+        summary: "MIS - Inventory & Stock Management",
+        status: "Backlog",
+        dueDate: "2026-04-24",
+        stories: [
+          { key: "GSS-5335", summary: "[MIS] Substrate definition storage for MIS", assignee: null, status: "Backlog", dueDate: null },
+          { key: "GSS-5336", summary: "[MIS] Substrate-to-GCP inventory linking", assignee: null, status: "Backlog", dueDate: null },
+          { key: "GCP-3696", summary: "[MIS] Stock reservation via Workflow Builder for MIS orders", assignee: null, status: "Backlog", dueDate: null },
+          { key: "GCP-3697", summary: "[MIS] Available vs. Allocated inventory views", assignee: null, status: "Backlog", dueDate: null },
+          { key: "GCP-3698", summary: "[MIS] Stock consumption on production completion", assignee: null, status: "Backlog", dueDate: null },
+          { key: "GCP-3699", summary: "[MIS] Auto-release allocation on order cancellation", assignee: null, status: "Backlog", dueDate: null },
+          { key: "GCP-3700", summary: "[MIS] Low stock alerts based on available quantity", assignee: null, status: "Backlog", dueDate: null },
+        ],
+      },
       {
         key: "GCP-3740",
         summary: "MIS - Substrate & Paper Management",
@@ -287,7 +303,7 @@ const WORKSTREAMS = [
     ownerFull: "Felix",
     team: "GNX team",
     status: "OFF_TRACK",
-    reason: "All 9 stories in Backlog with zero progress. Due Apr 24 (14 days). Depends on WS2 which is also off track. No due dates assigned.",
+    reason: "All 10 stories in Backlog with zero progress. New story GNX-8551 added (Invoicing Information — customer record). Due Apr 24 (14 days). No due dates assigned.",
     progress: 0,
     deadline: "2026-04-24",
     epics: [
@@ -297,7 +313,7 @@ const WORKSTREAMS = [
         status: "Backlog",
         dueDate: "2026-04-24",
         stories: [
-          { key: "GNX-8531", summary: "Invoice generation engine", assignee: "F\u00e9lix", status: "Backlog", dueDate: null },
+          { key: "GNX-8531", summary: "[BE] Invoice service engine", assignee: "Wojciech", status: "Backlog", dueDate: null },
           { key: "GNX-8532", summary: "[Create Invoice] Invoice settings and numbering configuration", assignee: "F\u00e9lix", status: "Backlog", dueDate: null },
           { key: "GNX-8533", summary: "[Create Invoice] Invoice list, review, and editing", assignee: "F\u00e9lix", status: "Backlog", dueDate: null },
           { key: "GNX-8534", summary: "[Create Invoice] Invoice delivery and payment recording", assignee: "F\u00e9lix", status: "Backlog", dueDate: null },
@@ -306,6 +322,7 @@ const WORKSTREAMS = [
           { key: "GNX-8537", summary: "[Invoice Template] Shared document template component", assignee: "F\u00e9lix", status: "Backlog", dueDate: null },
           { key: "GNX-8538", summary: "[ERP Integration] ERP connector framework", assignee: "F\u00e9lix", status: "Backlog", dueDate: null },
           { key: "GNX-8539", summary: "[ERP Integration] QuickBooks Online adapter", assignee: "F\u00e9lix", status: "Backlog", dueDate: null },
+          { key: "GNX-8551", summary: "Invoicing Information section \u2014 Customer record (Scope 1: Manual invoicing UI)", assignee: "Senthil", status: "Backlog", dueDate: "2026-04-13" },
         ],
       },
     ],
