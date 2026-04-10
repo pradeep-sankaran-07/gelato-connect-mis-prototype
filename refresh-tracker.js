@@ -173,7 +173,7 @@ async function jiraFetch(endpoint, params = {}) {
 
 async function fetchStoriesForEpic(epicKey) {
   const jql = `"Epic Link" = ${epicKey} ORDER BY key ASC`;
-  const fields = "key,summary,status,duedate";
+  const fields = "key,summary,status,duedate,assignee";
   let allIssues = [];
   let startAt = 0;
   const maxResults = 100;
@@ -190,12 +190,18 @@ async function fetchStoriesForEpic(epicKey) {
     startAt += maxResults;
   }
 
-  return allIssues.map((issue) => ({
-    key: issue.key,
-    summary: issue.fields.summary,
-    status: issue.fields.status?.name || "Backlog",
-    dueDate: issue.fields.duedate || null,
-  }));
+  return allIssues.map((issue) => {
+    // Extract first name only from assignee displayName
+    const fullName = issue.fields.assignee?.displayName || null;
+    const assignee = fullName ? fullName.split(" ")[0] : null;
+    return {
+      key: issue.key,
+      summary: issue.fields.summary,
+      assignee,
+      status: issue.fields.status?.name || "Backlog",
+      dueDate: issue.fields.duedate || null,
+    };
+  });
 }
 
 async function fetchEpicDetails(epicKey) {
