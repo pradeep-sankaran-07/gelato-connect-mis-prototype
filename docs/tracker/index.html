@@ -261,25 +261,10 @@ const WORKSTREAMS = [
     ownerFull: "Vipul",
     team: "GCP team",
     status: "OFF_TRACK",
-    reason: "All 12 stories across 2 epics in Backlog. Zero progress. No due dates except GCP-3743 (Apr 13). 14 days to deadline Apr 24. Upstream WS1a also off track.",
+    reason: "All 5 stories in Backlog. Zero progress. Only GCP-3743 has a due date (Apr 13). 14 days to deadline Apr 24.",
     progress: 0,
     deadline: "2026-04-24",
     epics: [
-      {
-        key: "GCP-3695",
-        summary: "MIS - Inventory Allocation & Stock Management",
-        status: "Backlog",
-        dueDate: "2026-04-24",
-        stories: [
-          { key: "GCP-3696", summary: "[MIS] Stock reservation via Workflow Builder for MIS orders", assignee: null, status: "Backlog", dueDate: null },
-          { key: "GCP-3697", summary: "[MIS] Available vs. Allocated inventory views", assignee: null, status: "Backlog", dueDate: null },
-          { key: "GCP-3698", summary: "[MIS] Stock consumption on production completion", assignee: null, status: "Backlog", dueDate: null },
-          { key: "GCP-3699", summary: "[MIS] Auto-release allocation on order cancellation", assignee: null, status: "Backlog", dueDate: null },
-          { key: "GCP-3700", summary: "[MIS] Low stock alerts based on available quantity", assignee: null, status: "Backlog", dueDate: null },
-          { key: "GSS-5335", summary: "[MIS] Substrate definition storage for MIS", assignee: null, status: "Backlog", dueDate: null },
-          { key: "GSS-5336", summary: "[MIS] Substrate-to-GCP inventory linking", assignee: null, status: "Backlog", dueDate: null },
-        ],
-      },
       {
         key: "GCP-3740",
         summary: "MIS - Substrate & Paper Management",
@@ -986,6 +971,8 @@ function MISPhase1Tracker() {
 
   const offTrackCount = WORKSTREAMS.filter((ws) => ws.status === "OFF_TRACK").length;
   const behindCount = WORKSTREAMS.filter((ws) => ws.status === "BEHIND").length;
+  const atRiskCount = WORKSTREAMS.filter((ws) => ws.status === "AT_RISK").length;
+  const onTrackCount = WORKSTREAMS.filter((ws) => ws.status === "ON_TRACK").length;
 
   return (
     <div
@@ -1070,6 +1057,8 @@ function MISPhase1Tracker() {
               { key: "all", label: "All" },
               { key: "OFF_TRACK", label: `Off Track (${offTrackCount})` },
               { key: "BEHIND", label: `Behind (${behindCount})` },
+              { key: "AT_RISK", label: `At Risk (${atRiskCount})` },
+              { key: "ON_TRACK", label: `On Track (${onTrackCount})` },
             ].map((f) => (
               <button
                 key={f.key}

@@ -70,7 +70,7 @@ const WORKSTREAM_DEFS = [
     ownerFull: "Vipul",
     team: "GCP team",
     deadline: "2026-04-24",
-    epicKeys: ["GCP-3695", "GCP-3740"],
+    epicKeys: ["GCP-3740"],
   },
   {
     id: "ws4",
