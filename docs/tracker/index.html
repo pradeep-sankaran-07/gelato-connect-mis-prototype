@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GelatoConnect MIS — Phase 1 Tracker</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Gelato Sans", system-ui, -apple-system, sans-serif; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+// ─── MIS Phase 1 Progress Tracker Dashboard ───
+// GNX/ConeUI Design System — Gelato Connect MIS
+
+const LAST_UPDATED = "2026-04-10T14:00:00Z";
+const PHASE1_DEADLINE = "2026-05-01";
+const JIRA_BASE = "https://gelato.atlassian.net/browse";
+
+// ─── Design Tokens ───
+const T = {
+  white: "#ffffff",
+  black: "#212121",
+  neutral5: "#f7f7f7",
+  neutral10: "#f2f2f2",
+  neutral20: "#e6e6e6",
+  neutral30: "#d4d4d4",
+  neutral40: "#bdbdbd",
+  neutral50: "#999999",
+  neutral60: "#8a8a8a",
+  neutral70: "#6b6b6b",
+  neutral80: "#525252",
+  neutral90: "#383838",
+  neutral100: "#212121",
+  primary5: "#f4e8fa",
+  primary50: "#cfa3e1",
+  primary70: "#9c77ac",
+  primary90: "#542c65",
+  success10: "#cdfee1",
+  success50: "#2ed389",
+  success70: "#29845a",
+  success90: "#0c5132",
+  warning10: "#fff1e3",
+  warning20: "#ffe4c6",
+  warning50: "#ffb800",
+  warning70: "#956f00",
+  warning90: "#5e4200",
+  critical5: "#ffefeb",
+  critical10: "#fee9e8",
+  critical20: "#fedad9",
+  critical50: "#fd817a",
+  critical60: "#ef4d2f",
+  critical70: "#e51c00",
+  critical80: "#b5260b",
+  critical90: "#8e1f0b",
+  info10: "#eaf4ff",
+  info50: "#91d0ff",
+  info70: "#007cb4",
+  info90: "#00527c",
+  alphaP5: "rgba(33,33,33,0.05)",
+  alphaP10: "rgba(33,33,33,0.1)",
+  alphaP20: "rgba(33,33,33,0.2)",
+  font: '"Gelato Sans", system-ui, -apple-system, sans-serif',
+  mono: '"Roboto Mono", ui-monospace, monospace',
+  radius: { button: "999px", input: "8px", card: "12px", badge: "6px" },
+};
+
+// ─── Status helpers ───
+const STATUS_MAP = {
+  ON_TRACK: { label: "On Track", bg: T.success10, text: T.success90, border: T.success70, dot: T.success50 },
+  BEHIND: { label: "Behind", bg: T.warning10, text: T.warning90, border: T.warning70, dot: T.warning50 },
+  OFF_TRACK: { label: "Off Track", bg: T.critical10, text: T.critical90, border: T.critical80, dot: T.critical60 },
+  AT_RISK: { label: "At Risk", bg: T.warning20, text: T.warning90, border: T.warning70, dot: "#ffb800" },
+};
+
+const JIRA_STATUS_COLORS = {
+  Done: { bg: T.success10, text: T.success90 },
+  "On Staging": { bg: "#eaf4ff", text: T.info90 },
+  "In Review": { bg: T.primary5, text: T.primary90 },
+  "In Progress": { bg: "#fff4d7", text: "#463710" },
+  Selected: { bg: T.neutral10, text: T.neutral80 },
+  Backlog: { bg: T.neutral5, text: T.neutral70 },
+};
+
+// ─── Complete Jira Data ───
+const WORKSTREAMS = [
+  {
+    id: "cross",
+    name: "Cross-cutting: Quote-to-Order",
+    owner: "Paul",
+    ownerFull: "Paul (Tech Lead)",
+    team: "Cross-team",
+    status: "BEHIND",
+    reason: "Due today (Apr 10). 4 done, 3 in progress/review, 2 on staging — deadline at risk.",
+    progress: 45,
+    deadline: "2026-04-10",
+    epics: [
+      {
+        key: "MIS-20",
+        summary: "Week1: Quote-to-order end-to-end flow",
+        status: "In Progress",
+        dueDate: "2026-04-10",
+        stories: [
+          { key: "MIS-21", summary: "API contract definition", status: "Done", dueDate: "2026-04-10" },
+          { key: "MIS-22", summary: "Authentication flow for MIS", status: "Done", dueDate: "2026-04-10" },
+          { key: "MIS-23", summary: "Basic estimation request/response", status: "Done", dueDate: "2026-04-10" },
+          { key: "MIS-24", summary: "Quote persistence layer", status: "Done", dueDate: "2026-04-10" },
+          { key: "MIS-25", summary: "Order creation from quote", status: "On Staging", dueDate: "2026-04-10" },
+          { key: "MIS-26", summary: "End-to-end integration test", status: "On Staging", dueDate: "2026-04-10" },
+          { key: "MIS-27", summary: "Error handling & retry logic", status: "In Review", dueDate: "2026-04-10" },
+          { key: "MIS-28", summary: "Performance benchmarking", status: "In Progress", dueDate: "2026-04-10" },
+          { key: "MIS-29", summary: "Documentation & runbook", status: "In Progress", dueDate: "2026-04-10" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "ws1a",
+    name: "WS1a: Quote-to-Order, Job Ticketing, Post-Conversion Order Editing, Reprints",
+    owner: "Styrbjorn",
+    ownerFull: "Styrbjorn",
+    team: "AI estimator team",
+    status: "OFF_TRACK",
+    reason: "8 of 9 stories in Backlog, no due dates set, only 1 story in progress",
+    progress: 3,
+    deadline: "2026-04-24",
+    epics: [
+      {
+        key: "JBW-4274",
+        summary: "MIS - Estimation Configurator",
+        status: "In Progress",
+        dueDate: null,
+        stories: [
+          { key: "JBW-4295", summary: "Create MIS configuration tabs", status: "In Progress", dueDate: null },
+          { key: "JBW-4296", summary: "Create MIS category management", status: "Backlog", dueDate: null },
+          { key: "JBW-4297", summary: "Create MIS product configuration", status: "Backlog", dueDate: null },
+          { key: "JBW-4298", summary: "Create MIS machine/substrate configuration", status: "Backlog", dueDate: null },
+          { key: "JBW-4299", summary: "Create MIS estimation rules engine", status: "Backlog", dueDate: null },
+          { key: "JBW-4300", summary: "Create MIS pricing model configuration", status: "Backlog", dueDate: null },
+          { key: "JBW-4301", summary: "Create MIS estimation preview/testing", status: "Backlog", dueDate: null },
+          { key: "JBW-4302", summary: "Create MIS configuration import/export", status: "Backlog", dueDate: null },
+          { key: "JBW-4303", summary: "Create MIS estimation API endpoints", status: "Backlog", dueDate: null },
+        ],
+      },
+    ],
+  },
+  {
+    id: "ws1b",
+    name: "WS1b: File Receipt & Proofing, Customer Communication Triggers",
+    owner: "Nilesh",
+    ownerFull: "Nilesh",
+    team: "GCWB team",
+    status: "BEHIND",
+    reason: "2 stories on staging, 1 in review, 8 still in backlog. Due Apr 30.",
+    progress: 8,
+    deadline: "2026-04-30",
+    epics: [
+      {
+        key: "GCWB-2477",
+        summary: "MIS - Estimation Widget Integration",
+        status: "In Progress",
+        dueDate: "2026-04-30",
+        stories: [
+          { key: "GCWB-2478", summary: "Widget SDK initialization", status: "On Staging", dueDate: "2026-04-10" },
+          { key: "GCWB-2479", summary: "Product selection component", status: "On Staging", dueDate: "2026-04-10" },
+          { key: "GCWB-2480", summary: "Quantity & specification inputs", status: "In Review", dueDate: "2026-04-14" },
+          { key: "GCWB-2481", summary: "Real-time price calculation", status: "In Progress", dueDate: "2026-04-17" },
+          { key: "GCWB-2482", summary: "Quote summary display", status: "Backlog", dueDate: "2026-04-17" },
+          { key: "GCWB-2483", summary: "Multi-item quote builder", status: "Backlog", dueDate: "2026-04-21" },
+          { key: "GCWB-2484", summary: "Widget theming & customization", status: "Backlog", dueDate: "2026-04-24" },
+          { key: "GCWB-2485", summary: "Error handling & validation", status: "Backlog", dueDate: "2026-04-21" },
+          { key: "GCWB-2486", summary: "Widget analytics & tracking", status: "Backlog", dueDate: "2026-04-24" },
+          { key: "GCWB-2487", summary: "Widget API rate limiting", status: "Backlog", dueDate: "2026-04-28" },
+          { key: "GCWB-2488", summary: "Widget responsive layout", status: "Backlog", dueDate: "2026-04-28" },
+          { key: "GCWB-2489", summary: "Widget accessibility (WCAG)", status: "Backlog", dueDate: "2026-04-30" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "ws2",
+    name: "WS2: Production Tracking, Station Views, Outsourcing",
+    owner: "Felix",
+    ownerFull: "Felix",
+    team: "GNX team",
+    status: "BEHIND",
+    reason: "4 stories in review, 1 in progress, but 6 still in backlog. Due Apr 17 — tight.",
+    progress: 12,
+    deadline: "2026-04-17",
+    epics: [
+      {
+        key: "GNX-8466",
+        summary: "MIS - GNX UI for Job Estimation",
+        status: "In Progress",
+        dueDate: "2026-04-17",
+        stories: [
+          { key: "GNX-8467", summary: "MIS estimation page layout", status: "In Review", dueDate: "2026-04-10" },
+          { key: "GNX-8468", summary: "Product category browser", status: "In Review", dueDate: "2026-04-10" },
+          { key: "GNX-8469", summary: "Specification form builder", status: "In Review", dueDate: "2026-04-10" },
+          { key: "GNX-8470", summary: "Price breakdown component", status: "In Review", dueDate: "2026-04-10" },
+          { key: "GNX-8471", summary: "Quote creation flow", status: "In Progress", dueDate: "2026-04-14" },
+          { key: "GNX-8472", summary: "Quote history & management", status: "Backlog", dueDate: "2026-04-14" },
+          { key: "GNX-8473", summary: "MIS settings integration", status: "Backlog", dueDate: "2026-04-14" },
+          { key: "GNX-8474", summary: "Print specification templates", status: "Backlog", dueDate: "2026-04-17" },
+          { key: "GNX-8475", summary: "Estimation comparison view", status: "Backlog", dueDate: "2026-04-17" },
+          { key: "GNX-8476", summary: "MIS report generation", status: "Backlog", dueDate: "2026-04-17" },
+          { key: "GNX-8477", summary: "MIS dashboard widgets", status: "Backlog", dueDate: "2026-04-17" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "ws3a",
+    name: "WS3a: Shipping & Fulfillment",
+    owner: "Kian",
+    ownerFull: "Kian",
+    team: "GCL team",
+    status: "BEHIND",
+    reason: "2 stories done, 1 in progress, but 6 in backlog. Mixed due dates — some past due.",
+    progress: 15,
+    deadline: "2026-04-24",
+    epics: [
+      {
+        key: "GCL-3147",
+        summary: "MIS - Order Management Integration",
+        status: "In Progress",
+        dueDate: "2026-04-24",
+        stories: [
+          { key: "GCL-3148", summary: "Quote-to-order conversion", status: "Done", dueDate: "2026-04-03" },
+          { key: "GCL-3149", summary: "Order data model extension", status: "Done", dueDate: "2026-04-03" },
+          { key: "GCL-3150", summary: "Order status tracking", status: "In Progress", dueDate: "2026-04-10" },
+          { key: "GCL-3151", summary: "Order modification workflow", status: "Selected", dueDate: "2026-04-14" },
+          { key: "GCL-3152", summary: "Order approval process", status: "Backlog", dueDate: "2026-04-14" },
+          { key: "GCL-3153", summary: "Order notification system", status: "Backlog", dueDate: "2026-04-17" },
+          { key: "GCL-3154", summary: "Batch order processing", status: "Backlog", dueDate: "2026-04-21" },
+          { key: "GCL-3155", summary: "Order history & audit log", status: "Backlog", dueDate: "2026-04-21" },
+          { key: "GCL-3156", summary: "Order export functionality", status: "Backlog", dueDate: "2026-04-24" },
+          { key: "GCL-3157", summary: "Order analytics dashboard", status: "Backlog", dueDate: "2026-04-24" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "ws3b",
+    name: "WS3b: Inventory & Procurement",
+    owner: "Vipul",
+    ownerFull: "Vipul",
+    team: "GCP team",
+    status: "OFF_TRACK",
+    reason: "All 12 stories across 2 epics in Backlog. No due dates. Zero progress.",
+    progress: 0,
+    deadline: "2026-04-24",
+    epics: [
+      {
+        key: "GCP-3695",
+        summary: "MIS - Production Planning Engine",
+        status: "Backlog",
+        dueDate: null,
+        stories: [
+          { key: "GCP-3696", summary: "Production schedule generator", status: "Backlog", dueDate: null },
+          { key: "GCP-3697", summary: "Machine capacity calculator", status: "Backlog", dueDate: null },
+          { key: "GCP-3698", summary: "Material requirements planning", status: "Backlog", dueDate: null },
+          { key: "GCP-3699", summary: "Production timeline estimation", status: "Backlog", dueDate: null },
+          { key: "GCP-3700", summary: "Bottleneck detection algorithm", status: "Backlog", dueDate: null },
+          { key: "GCP-3701", summary: "Production cost optimization", status: "Backlog", dueDate: null },
+        ],
+      },
+      {
+        key: "GCP-3740",
+        summary: "MIS - Production Monitoring",
+        status: "Backlog",
+        dueDate: null,
+        stories: [
+          { key: "GCP-3741", summary: "Real-time production tracking", status: "Backlog", dueDate: null },
+          { key: "GCP-3742", summary: "Production alerts & notifications", status: "Backlog", dueDate: null },
+          { key: "GCP-3743", summary: "Production quality metrics", status: "Backlog", dueDate: null },
+          { key: "GCP-3744", summary: "Waste tracking & reporting", status: "Backlog", dueDate: null },
+          { key: "GCP-3745", summary: "Production performance dashboard", status: "Backlog", dueDate: null },
+          { key: "GCP-3746", summary: "Shift management integration", status: "Backlog", dueDate: null },
+        ],
+      },
+    ],
+  },
+  {
+    id: "ws4",
+    name: "WS4: Finance, Invoicing, Customer CRM, ERP Integration",
+    owner: "Felix",
+    ownerFull: "Felix",
+    team: "GNX team",
+    status: "OFF_TRACK",
+    reason: "All 10 stories in Backlog with no progress. Due Apr 24.",
+    progress: 0,
+    deadline: "2026-04-24",
+    epics: [
+      {
+        key: "GNX-8530",
+        summary: "MIS - Invoicing & Billing Module",
+        status: "Backlog",
+        dueDate: "2026-04-24",
+        stories: [
+          { key: "GNX-8531", summary: "Invoice generation from orders", status: "Backlog", dueDate: null },
+          { key: "GNX-8532", summary: "Invoice template designer", status: "Backlog", dueDate: null },
+          { key: "GNX-8533", summary: "Tax calculation engine", status: "Backlog", dueDate: null },
+          { key: "GNX-8534", summary: "Payment tracking integration", status: "Backlog", dueDate: null },
+          { key: "GNX-8535", summary: "Credit note management", status: "Backlog", dueDate: null },
+          { key: "GNX-8536", summary: "Invoice approval workflow", status: "Backlog", dueDate: null },
+          { key: "GNX-8537", summary: "Billing schedule automation", status: "Backlog", dueDate: null },
+          { key: "GNX-8538", summary: "Financial reporting module", status: "Backlog", dueDate: null },
+          { key: "GNX-8539", summary: "Multi-currency support", status: "Backlog", dueDate: null },
+          { key: "GNX-8540", summary: "Invoice delivery (email/PDF)", status: "Backlog", dueDate: null },
+        ],
+      },
+    ],
+  },
+];
+
+// ─── Milestone data ───
+const MILESTONES = [
+  { name: "Sprint 1", date: "2026-04-03", status: "done" },
+  { name: "Sprint 2", date: "2026-04-10", status: "today" },
+  { name: "Sprint 3", date: "2026-04-17", status: "upcoming" },
+  { name: "Customer Release", date: "2026-04-24", status: "upcoming" },
+  { name: "Go-Live", date: "2026-05-01", status: "upcoming" },
+];
+
+// ─── Utility functions ───
+function daysUntil(dateStr) {
+  const now = new Date("2026-04-10");
+  const target = new Date(dateStr);
+  return Math.ceil((target - now) / (1000 * 60 * 60 * 24));
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return "—";
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function isPastDue(dateStr) {
+  if (!dateStr) return false;
+  return new Date(dateStr) < new Date("2026-04-10");
+}
+
+// ─── Components ───
+
+function StatusBadge({ status }) {
+  const s = STATUS_MAP[status];
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 6,
+        padding: "4px 12px",
+        borderRadius: T.radius.badge,
+        background: s.bg,
+        color: s.text,
+        fontSize: 12,
+        fontWeight: 600,
+        border: `1px solid ${s.border}`,
+      }}
+    >
+      <span
+        style={{
+          width: 8,
+          height: 8,
+          borderRadius: "50%",
+          background: s.dot,
+          flexShrink: 0,
+        }}
+      />
+      {s.label}
+    </span>
+  );
+}
+
+function JiraStatusBadge({ status }) {
+  const c = JIRA_STATUS_COLORS[status] || { bg: T.neutral10, text: T.neutral80 };
+  return (
+    <span
+      style={{
+        display: "inline-block",
+        padding: "2px 8px",
+        borderRadius: 4,
+        background: c.bg,
+        color: c.text,
+        fontSize: 11,
+        fontWeight: 500,
+        whiteSpace: "nowrap",
+      }}
+    >
+      {status}
+    </span>
+  );
+}
+
+function ProgressBar({ value, color }) {
+  const fill = value <= 10 ? T.critical60 : value <= 40 ? T.warning50 : T.success50;
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        width: "100%",
+      }}
+    >
+      <div
+        style={{
+          flex: 1,
+          height: 8,
+          borderRadius: 8,
+          background: T.neutral20,
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            width: `${Math.max(value, 2)}%`,
+            height: "100%",
+            borderRadius: 8,
+            background: color || fill,
+            transition: "width 0.4s ease",
+          }}
+        />
+      </div>
+      <span style={{ fontSize: 13, fontWeight: 600, color: T.neutral90, minWidth: 36, textAlign: "right" }}>
+        {value}%
+      </span>
+    </div>
+  );
+}
+
+function StoryRow({ story }) {
+  const pastDue = isPastDue(story.dueDate);
+  return (
+    <tr
+      style={{
+        borderBottom: `1px solid ${T.neutral20}`,
+        transition: "background 0.15s ease",
+      }}
+      onMouseEnter={(e) => (e.currentTarget.style.background = T.alphaP5)}
+      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+    >
+      <td style={{ padding: "8px 12px", fontSize: 13 }}>
+        <a
+          href={`${JIRA_BASE}/${story.key}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            color: T.info70,
+            textDecoration: "none",
+            fontFamily: T.mono,
+            fontSize: 12,
+            fontWeight: 500,
+          }}
+        >
+          {story.key}
+        </a>
+      </td>
+      <td style={{ padding: "8px 12px", fontSize: 13, color: T.neutral100 }}>{story.summary}</td>
+      <td style={{ padding: "8px 12px" }}>
+        <JiraStatusBadge status={story.status} />
+      </td>
+      <td
+        style={{
+          padding: "8px 12px",
+          fontSize: 12,
+          color: pastDue ? T.critical70 : T.neutral60,
+          fontWeight: pastDue ? 600 : 400,
+        }}
+      >
+        {formatDate(story.dueDate)}
+        {pastDue && " ⚠"}
+      </td>
+    </tr>
+  );
+}
+
+function EpicSection({ epic }) {
+  const [open, setOpen] = React.useState(false);
+  const doneCount = epic.stories.filter((s) => s.status === "Done").length;
+  const inProgressCount = epic.stories.filter((s) => ["In Progress", "In Review", "On Staging"].includes(s.status)).length;
+  const totalStories = epic.stories.length;
+
+  return (
+    <div style={{ marginBottom: 8 }}>
+      <div
+        onClick={() => setOpen(!open)}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          padding: "10px 14px",
+          borderRadius: 8,
+          background: open ? T.neutral5 : "transparent",
+          cursor: "pointer",
+          transition: "background 0.15s ease",
+          border: open ? `1px solid ${T.neutral20}` : "1px solid transparent",
+        }}
+        onMouseEnter={(e) => {
+          if (!open) e.currentTarget.style.background = T.neutral5;
+        }}
+        onMouseLeave={(e) => {
+          if (!open) e.currentTarget.style.background = "transparent";
+        }}
+      >
+        <span
+          style={{
+            transform: open ? "rotate(90deg)" : "rotate(0deg)",
+            transition: "transform 0.15s ease",
+            fontSize: 14,
+            color: T.neutral60,
+            flexShrink: 0,
+          }}
+        >
+          ▶
+        </span>
+        <a
+          href={`${JIRA_BASE}/${epic.key}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            fontFamily: T.mono,
+            fontSize: 12,
+            color: T.info70,
+            textDecoration: "none",
+            fontWeight: 500,
+            flexShrink: 0,
+          }}
+        >
+          {epic.key}
+        </a>
+        <span style={{ fontSize: 14, fontWeight: 500, color: T.neutral100, flex: 1 }}>
+          {epic.summary}
+        </span>
+        <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+          <span
+            style={{
+              fontSize: 11,
+              padding: "2px 6px",
+              borderRadius: 4,
+              background: T.success10,
+              color: T.success90,
+            }}
+          >
+            {doneCount} done
+          </span>
+          <span
+            style={{
+              fontSize: 11,
+              padding: "2px 6px",
+              borderRadius: 4,
+              background: "#fff4d7",
+              color: "#463710",
+            }}
+          >
+            {inProgressCount} active
+          </span>
+          <span
+            style={{
+              fontSize: 11,
+              padding: "2px 6px",
+              borderRadius: 4,
+              background: T.neutral10,
+              color: T.neutral70,
+            }}
+          >
+            {totalStories} total
+          </span>
+        </div>
+      </div>
+      {open && (
+        <div
+          style={{
+            marginTop: 4,
+            marginLeft: 24,
+            borderRadius: 8,
+            border: `1px solid ${T.neutral20}`,
+            overflow: "hidden",
+          }}
+        >
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr style={{ background: T.neutral5 }}>
+                <th
+                  style={{
+                    padding: "8px 12px",
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: T.neutral70,
+                    textAlign: "left",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                  }}
+                >
+                  Key
+                </th>
+                <th
+                  style={{
+                    padding: "8px 12px",
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: T.neutral70,
+                    textAlign: "left",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                  }}
+                >
+                  Summary
+                </th>
+                <th
+                  style={{
+                    padding: "8px 12px",
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: T.neutral70,
+                    textAlign: "left",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                  }}
+                >
+                  Status
+                </th>
+                <th
+                  style={{
+                    padding: "8px 12px",
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: T.neutral70,
+                    textAlign: "left",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                  }}
+                >
+                  Due
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {epic.stories.map((story) => (
+                <StoryRow key={story.key} story={story} />
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function WorkstreamCard({ ws }) {
+  const [expanded, setExpanded] = React.useState(false);
+  const s = STATUS_MAP[ws.status];
+  const deadlineDays = daysUntil(ws.deadline);
+  const deadlinePast = deadlineDays < 0;
+
+  const totalStories = ws.epics.reduce((acc, e) => acc + e.stories.length, 0);
+  const doneStories = ws.epics.reduce((acc, e) => acc + e.stories.filter((s) => s.status === "Done").length, 0);
+  const activeStories = ws.epics.reduce(
+    (acc, e) => acc + e.stories.filter((s) => ["In Progress", "In Review", "On Staging", "Selected"].includes(s.status)).length,
+    0
+  );
+
+  return (
+    <div
+      style={{
+        borderRadius: 12,
+        border: `1px solid ${T.neutral20}`,
+        background: T.white,
+        overflow: "hidden",
+        transition: "box-shadow 0.15s ease",
+        boxShadow: expanded ? "0 4px 12px rgba(0,0,0,0.08)" : "0 1px 3px rgba(0,0,0,0.04)",
+      }}
+    >
+      {/* Card Header */}
+      <div
+        onClick={() => setExpanded(!expanded)}
+        style={{
+          padding: "16px 20px",
+          cursor: "pointer",
+          display: "flex",
+          flexDirection: "column",
+          gap: 12,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+              <span
+                style={{
+                  transform: expanded ? "rotate(90deg)" : "rotate(0deg)",
+                  transition: "transform 0.15s ease",
+                  fontSize: 12,
+                  color: T.neutral50,
+                }}
+              >
+                ▶
+              </span>
+              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: T.neutral100 }}>{ws.name}</h3>
+            </div>
+            <div style={{ marginLeft: 22, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 13, color: T.neutral60 }}>
+                Owner: <strong style={{ color: T.neutral90 }}>{ws.ownerFull}</strong>
+              </span>
+              <span style={{ color: T.neutral30 }}>|</span>
+              <span style={{ fontSize: 13, color: T.neutral60 }}>
+                Team: <strong style={{ color: T.neutral90 }}>{ws.team}</strong>
+              </span>
+            </div>
+          </div>
+          <StatusBadge status={ws.status} />
+        </div>
+
+        {/* Stats row */}
+        <div style={{ marginLeft: 22, display: "flex", alignItems: "center", gap: 20 }}>
+          <div style={{ flex: 1, maxWidth: 260 }}>
+            <ProgressBar value={ws.progress} />
+          </div>
+          <div style={{ display: "flex", gap: 16, fontSize: 12, color: T.neutral60 }}>
+            <span>
+              <strong style={{ color: T.neutral90 }}>{doneStories}</strong>/{totalStories} done
+            </span>
+            <span>
+              <strong style={{ color: T.neutral90 }}>{activeStories}</strong> active
+            </span>
+            <span
+              style={{
+                color: deadlinePast ? T.critical70 : deadlineDays <= 7 ? T.warning70 : T.neutral60,
+                fontWeight: deadlinePast ? 600 : 400,
+              }}
+            >
+              {deadlinePast
+                ? `${Math.abs(deadlineDays)}d overdue`
+                : `${deadlineDays}d left`}{" "}
+              ({formatDate(ws.deadline)})
+            </span>
+          </div>
+        </div>
+
+        {/* Reason */}
+        <p
+          style={{
+            margin: "0 0 0 22px",
+            fontSize: 13,
+            color: T.neutral70,
+            lineHeight: 1.4,
+            fontStyle: "italic",
+          }}
+        >
+          {ws.reason}
+        </p>
+      </div>
+
+      {/* Expanded: Epics + Stories */}
+      {expanded && (
+        <div
+          style={{
+            padding: "0 20px 16px",
+            borderTop: `1px solid ${T.neutral20}`,
+          }}
+        >
+          <div style={{ paddingTop: 12 }}>
+            {ws.epics.map((epic) => (
+              <EpicSection key={epic.key} epic={epic} />
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MilestoneTimeline() {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 0,
+        padding: "16px 20px",
+        borderRadius: 12,
+        border: `1px solid ${T.neutral20}`,
+        background: T.white,
+        overflow: "hidden",
+      }}
+    >
+      {MILESTONES.map((m, i) => {
+        const isToday = m.status === "today";
+        const isDone = m.status === "done";
+        const dotColor = isDone ? T.success50 : isToday ? T.neutral100 : T.neutral30;
+        const textColor = isDone ? T.neutral60 : isToday ? T.neutral100 : T.neutral50;
+        const dateColor = isDone ? T.neutral50 : isToday ? T.neutral90 : T.neutral40;
+
+        return (
+          <div
+            key={m.name}
+            style={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              position: "relative",
+            }}
+          >
+            {/* Connector line */}
+            {i > 0 && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: 10,
+                  right: "50%",
+                  width: "100%",
+                  height: 2,
+                  background: isDone ? T.success50 : T.neutral20,
+                  zIndex: 0,
+                }}
+              />
+            )}
+            <div
+              style={{
+                width: isToday ? 20 : 12,
+                height: isToday ? 20 : 12,
+                borderRadius: "50%",
+                background: dotColor,
+                border: isToday ? `3px solid ${T.neutral100}` : "none",
+                zIndex: 1,
+                boxShadow: isToday ? "0 0 0 4px rgba(33,33,33,0.12)" : "none",
+              }}
+            />
+            <span
+              style={{
+                marginTop: 8,
+                fontSize: 12,
+                fontWeight: isToday ? 600 : 400,
+                color: textColor,
+                textAlign: "center",
+              }}
+            >
+              {m.name}
+            </span>
+            <span style={{ fontSize: 11, color: dateColor }}>{formatDate(m.date)}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function OverallStatusCard() {
+  const daysLeft = daysUntil(PHASE1_DEADLINE);
+  const totalStories = WORKSTREAMS.reduce(
+    (acc, ws) => acc + ws.epics.reduce((a, e) => a + e.stories.length, 0),
+    0
+  );
+  const doneStories = WORKSTREAMS.reduce(
+    (acc, ws) => acc + ws.epics.reduce((a, e) => a + e.stories.filter((s) => s.status === "Done").length, 0),
+    0
+  );
+  const activeStories = WORKSTREAMS.reduce(
+    (acc, ws) =>
+      acc +
+      ws.epics.reduce(
+        (a, e) =>
+          a + e.stories.filter((s) => ["In Progress", "In Review", "On Staging"].includes(s.status)).length,
+        0
+      ),
+    0
+  );
+  const backlogStories = totalStories - doneStories - activeStories;
+  const overallProgress = Math.round((doneStories / totalStories) * 100);
+
+  return (
+    <div
+      style={{
+        borderRadius: 12,
+        border: `1px solid ${T.critical80}`,
+        background: `linear-gradient(135deg, ${T.critical5} 0%, ${T.white} 100%)`,
+        padding: 24,
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20 }}>
+        <div>
+          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 600, color: T.neutral100 }}>
+            GelatoConnect MIS — Phase 1
+          </h2>
+          <p style={{ margin: "4px 0 0", fontSize: 14, color: T.neutral60 }}>
+            Go-live target: May 1, 2026 · <strong style={{ color: T.critical70 }}>{daysLeft} days remaining</strong>
+          </p>
+        </div>
+        <StatusBadge status="OFF_TRACK" />
+      </div>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(4, 1fr)",
+          gap: 16,
+          marginBottom: 20,
+        }}
+      >
+        {[
+          { label: "Total Stories", value: totalStories, color: T.neutral100 },
+          { label: "Done", value: doneStories, color: T.success70 },
+          { label: "Active", value: activeStories, color: T.warning70 },
+          { label: "Backlog", value: backlogStories, color: T.critical60 },
+        ].map((stat) => (
+          <div
+            key={stat.label}
+            style={{
+              padding: "12px 16px",
+              borderRadius: 8,
+              background: T.white,
+              border: `1px solid ${T.neutral20}`,
+              textAlign: "center",
+            }}
+          >
+            <div style={{ fontSize: 28, fontWeight: 700, color: stat.color }}>{stat.value}</div>
+            <div style={{ fontSize: 12, color: T.neutral60, marginTop: 2 }}>{stat.label}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ marginBottom: 12 }}>
+        <div style={{ fontSize: 12, color: T.neutral60, marginBottom: 6, fontWeight: 500 }}>Overall Delivery Progress</div>
+        <ProgressBar value={overallProgress} color={T.critical60} />
+      </div>
+
+      <div
+        style={{
+          padding: "12px 16px",
+          borderRadius: 8,
+          background: T.critical10,
+          border: `1px solid ${T.critical80}`,
+          fontSize: 13,
+          color: T.critical90,
+          lineHeight: 1.5,
+        }}
+      >
+        <strong>Assessment:</strong> Project is off track for May 1 delivery. ~1 week was lost on architectural
+        discussions. Most work streams have the majority of stories still in Backlog. WS3b (Production Planning) and WS4
+        (Invoicing) have zero progress. The cross-cutting Week 1 epic is past due. Immediate escalation and re-scoping
+        recommended.
+      </div>
+    </div>
+  );
+}
+
+// ─── Main Dashboard ───
+function MISPhase1Tracker() {
+  const [filter, setFilter] = React.useState("all");
+
+  const filtered =
+    filter === "all"
+      ? WORKSTREAMS
+      : WORKSTREAMS.filter((ws) => ws.status === filter);
+
+  const offTrackCount = WORKSTREAMS.filter((ws) => ws.status === "OFF_TRACK").length;
+  const behindCount = WORKSTREAMS.filter((ws) => ws.status === "BEHIND").length;
+
+  return (
+    <div
+      style={{
+        minHeight: "100vh",
+        background: T.neutral5,
+        fontFamily: T.font,
+        color: T.neutral100,
+      }}
+    >
+      {/* Top bar */}
+      <div
+        style={{
+          background: T.neutral100,
+          color: T.white,
+          padding: "12px 32px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 8,
+              background: "linear-gradient(135deg, #cfa3e1, #fdd877)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 16,
+              fontWeight: 700,
+            }}
+          >
+            G
+          </div>
+          <span style={{ fontSize: 15, fontWeight: 500 }}>GelatoConnect MIS</span>
+          <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginLeft: 4 }}>Phase 1 Tracker</span>
+        </div>
+        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>
+          Last updated: {new Date(LAST_UPDATED).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "24px 32px" }}>
+        {/* Overall Status */}
+        <OverallStatusCard />
+
+        {/* Milestone Timeline */}
+        <div style={{ marginTop: 20 }}>
+          <h3
+            style={{
+              fontSize: 14,
+              fontWeight: 600,
+              color: T.neutral90,
+              marginBottom: 10,
+              letterSpacing: "0.3px",
+            }}
+          >
+            Sprint Milestones
+          </h3>
+          <MilestoneTimeline />
+        </div>
+
+        {/* Filters */}
+        <div
+          style={{
+            marginTop: 28,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 16,
+          }}
+        >
+          <h3 style={{ fontSize: 18, fontWeight: 600, color: T.neutral100, margin: 0 }}>
+            Work Streams
+          </h3>
+          <div style={{ display: "flex", gap: 6 }}>
+            {[
+              { key: "all", label: "All" },
+              { key: "OFF_TRACK", label: `Off Track (${offTrackCount})` },
+              { key: "BEHIND", label: `Behind (${behindCount})` },
+            ].map((f) => (
+              <button
+                key={f.key}
+                onClick={() => setFilter(f.key)}
+                style={{
+                  padding: "6px 14px",
+                  borderRadius: 999,
+                  border: `1.5px solid ${filter === f.key ? T.neutral100 : T.neutral30}`,
+                  background: filter === f.key ? T.neutral100 : T.white,
+                  color: filter === f.key ? T.white : T.neutral90,
+                  fontSize: 13,
+                  fontWeight: 500,
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Work Stream Cards */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {filtered.map((ws) => (
+            <WorkstreamCard key={ws.id} ws={ws} />
+          ))}
+        </div>
+
+        {/* Footer */}
+        <div
+          style={{
+            marginTop: 32,
+            padding: "16px 0",
+            borderTop: `1px solid ${T.neutral20}`,
+            display: "flex",
+            justifyContent: "space-between",
+            fontSize: 12,
+            color: T.neutral50,
+          }}
+        >
+          <span>GelatoConnect MIS Phase 1 — Progress Tracker</span>
+          <span>Auto-refreshes every 4 hours · Data from Jira</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<MISPhase1Tracker />);
+  </script>
+</body>
+</html>
