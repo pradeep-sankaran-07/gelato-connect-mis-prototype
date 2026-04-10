@@ -91,22 +91,25 @@ const JIRA_STATUS_COLORS = {
 const WORKSTREAMS = [
   {
     id: "cross",
-    name: "Cross-cutting: Quote-to-Order",
+    name: "Cross-cutting: Quote-to-Order Proof of Concept",
     owner: "Paul",
     ownerFull: "Paul (Tech Lead)",
     team: "Cross-team",
-    status: "OFF_TRACK",
-    reason: "Past due (was Apr 10). MIS-10 is a standalone story in Backlog with no progress or due date. Needs scoping.",
-    progress: 0,
+    status: "BEHIND",
+    reason: "Past due (was Apr 10). 3 of 4 stories in progress, 1 in review. Paul driving all stories but no due dates set. Active velocity but deadline missed.",
+    progress: 38,
     deadline: "2026-04-10",
     epics: [
       {
-        key: "MIS-10",
-        summary: "For simple products like flyers and books, I can see orders produced fully automatically — just like a programmatic order",
+        key: "MIS-25",
+        summary: "Cross-cutting: Quote-to-Order",
         status: "Backlog",
         dueDate: null,
         stories: [
-          { key: "MIS-10", summary: "For simple products like flyers and books, I can see orders produced fully automatically \u2014 just like a programmatic order", assignee: null, status: "Backlog", dueDate: null },
+          { key: "MIS-10", summary: "For simple products like flyers and books, I can see orders produced fully automatically \u2014 just like a programmatic order", assignee: "Paul", status: "In Progress", dueDate: null },
+          { key: "MIS-21", summary: "Create first integration between PP and JBW", assignee: "Paul", status: "In Review", dueDate: null },
+          { key: "MIS-22", summary: "Integrate workflow creation/update with JBW", assignee: "Paul", status: "In Progress", dueDate: null },
+          { key: "MIS-24", summary: "Discovery: handle incomplete orders & preproduction workflow", assignee: "Paul", status: "In Progress", dueDate: null },
         ],
       },
     ],
@@ -892,7 +895,12 @@ function OverallStatusCard() {
     0
   );
   const backlogStories = totalStories - doneStories - activeStories;
-  const overallProgress = Math.round((doneStories / totalStories) * 100);
+  // Weighted progress: Done=100, On Staging=80, In Review=60, In Progress=30, Selected=10, Backlog=0
+  const STATUS_WEIGHTS = { "Done": 100, "On Staging": 80, "In Review": 60, "In Progress": 30, "Selected": 10, "Backlog": 0 };
+  const weightedSum = WORKSTREAMS.reduce(
+    (acc, ws) => acc + ws.epics.reduce((a, e) => a + e.stories.reduce((s, story) => s + (STATUS_WEIGHTS[story.status] || 0), 0), 0), 0
+  );
+  const overallProgress = totalStories > 0 ? Math.round(weightedSum / totalStories) : 0;
 
   return (
     <div

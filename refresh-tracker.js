@@ -20,12 +20,12 @@ const DRY_RUN = process.env.DRY_RUN === "true";
 const WORKSTREAM_DEFS = [
   {
     id: "cross",
-    name: "Cross-cutting: Quote-to-Order",
+    name: "Cross-cutting: Quote-to-Order Proof of Concept",
     owner: "Paul",
     ownerFull: "Paul (Tech Lead)",
     team: "Cross-team",
     deadline: "2026-04-10",
-    epicKeys: ["MIS-10"],
+    epicKeys: ["MIS-25"],
   },
   {
     id: "ws1a",
