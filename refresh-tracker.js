@@ -25,7 +25,7 @@ const WORKSTREAM_DEFS = [
     ownerFull: "Paul (Tech Lead)",
     team: "Cross-team",
     deadline: "2026-04-10",
-    epicKeys: ["MIS-20"],
+    epicKeys: ["MIS-10"],
   },
   {
     id: "ws1a",
@@ -52,7 +52,7 @@ const WORKSTREAM_DEFS = [
     ownerFull: "Felix",
     team: "GNX team",
     deadline: "2026-04-17",
-    epicKeys: ["GNX-8466"],
+    epicKeys: ["GNX-8466", "MIS-20"],
   },
   {
     id: "ws3a",
@@ -220,15 +220,26 @@ async function fetchStoriesForEpic(epicKey) {
 }
 
 async function fetchEpicDetails(epicKey) {
-  const data = await jiraFetch(`issue/${epicKey}`, {
-    fields: "summary,status,duedate",
-  });
-  return {
-    key: epicKey,
-    summary: data.fields.summary,
-    status: data.fields.status?.name || "Backlog",
-    dueDate: data.fields.duedate || null,
-  };
+  // Use the search/jql endpoint to fetch epic details (single issue)
+  // This avoids the /issue/{key} endpoint which may have permission issues
+  const data = await jiraSearchJql(
+    `key = ${epicKey}`,
+    ["summary", "status", "duedate"],
+    null,
+    1
+  );
+  if (data.issues && data.issues.length > 0) {
+    const issue = data.issues[0];
+    return {
+      key: epicKey,
+      summary: issue.fields.summary,
+      status: issue.fields.status?.name || "Backlog",
+      dueDate: issue.fields.duedate || null,
+    };
+  }
+  // Fallback: return minimal info if epic not found
+  console.warn(`  Warning: Epic ${epicKey} not found via search, using key as summary`);
+  return { key: epicKey, summary: epicKey, status: "Backlog", dueDate: null };
 }
 
 // ─── PM Assessment Logic ───
