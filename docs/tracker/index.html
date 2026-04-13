@@ -18,7 +18,7 @@
 // ─── MIS Phase 1 Progress Tracker Dashboard ───
 // GNX/ConeUI Design System — Gelato Connect MIS
 
-const LAST_UPDATED = "2026-04-10T15:00:00Z";
+const LAST_UPDATED = "2026-04-13T08:00:00Z";
 const PHASE1_DEADLINE = "2026-05-01";
 const JIRA_BASE = "https://gelato.atlassian.net/browse";
 
@@ -96,7 +96,7 @@ const WORKSTREAMS = [
     ownerFull: "Paul (Tech Lead)",
     team: "Cross-team",
     status: "BEHIND",
-    reason: "Past due (was Apr 10). 3 of 4 stories in progress, 1 in review. Paul driving all stories but no due dates set. Active velocity but deadline missed.",
+    reason: "Past due (Apr 10, 3 days ago). 3 of 4 stories In Progress, 1 In Review. Paul driving all stories — no due dates set. Active velocity but deadline missed.",
     progress: 38,
     deadline: "2026-04-10",
     epics: [
@@ -121,7 +121,7 @@ const WORKSTREAMS = [
     ownerFull: "Styrbjorn",
     team: "AI estimator team",
     status: "OFF_TRACK",
-    reason: "7 of 9 stories in Backlog with no due dates. Only 1 in progress (GCL integration discovery). 14 days to deadline Apr 24 — backlog at 78%, critical path blocked.",
+    reason: "9 of 10 stories in Backlog. Only JBW-4160 (GCL integration discovery) in progress (Salma). New cross-project ticket GCL-3214 added. 11 days to Apr 24 — critical path blocked.",
     progress: 3,
     deadline: "2026-04-24",
     epics: [
@@ -131,6 +131,7 @@ const WORKSTREAMS = [
         status: "In Progress",
         dueDate: "2026-04-24",
         stories: [
+          { key: "GCL-3214", summary: "GCL: provide configuration APIs for shipping methods, destinations, and package types", assignee: "Alexey", status: "Backlog", dueDate: null },
           { key: "JBW-3174", summary: "Versions on estimates. GB_PEV", assignee: "Styrbjörn", status: "Backlog", dueDate: "2026-05-15" },
           { key: "JBW-4160", summary: "MIS: GCL integration discovery & planning", assignee: "Salma", status: "In Progress", dueDate: null },
           { key: "JBW-4275", summary: "Quote-to-Order Conversion", assignee: "Styrbjörn", status: "Backlog", dueDate: null },
@@ -151,8 +152,8 @@ const WORKSTREAMS = [
     ownerFull: "Nilesh",
     team: "GCWB team",
     status: "AT_RISK",
-    reason: "24% progress, 20 days to Apr 30. 2 On Staging, GCWB-2575 advanced to In Review. 3 stories past individual due dates (GCWB-2495 Apr 8, GCWB-2507 Apr 7, GCWB-2541 Apr 1). 7 of 12 still in Backlog.",
-    progress: 24,
+    reason: "29% progress, 17 days to Apr 30. 2 On Staging, 2 In Review. 4 stories past individual due dates (GCWB-2495 Apr 8, GCWB-2507 Apr 7, GCWB-2541 Apr 1, GCWB-2542 Apr 2). 6 of 10 still in Backlog.",
+    progress: 29,
     deadline: "2026-04-30",
     epics: [
       {
@@ -164,11 +165,9 @@ const WORKSTREAMS = [
           { key: "GCWB-2494", summary: "[BE] Workflow Builder \u2014 File Upload Pause Activity (WB-6)", assignee: "Valentin", status: "Backlog", dueDate: null },
           { key: "GCWB-2495", summary: "[BE] Approval flow for various steps", assignee: "Valentin", status: "In Review", dueDate: "2026-04-08" },
           { key: "GCWB-2496", summary: "[BE] Research existing communication end points in manage orders", assignee: "Valentin", status: "Backlog", dueDate: null },
-          { key: "GCWB-2497", summary: "[FE] Multi-Part File Upload (Reusable Component)", assignee: null, status: "Backlog", dueDate: null },
           { key: "GCWB-2498", summary: "[BE][FE] Proof Approval & Rejection Loop", assignee: "Valentin", status: "Backlog", dueDate: null },
           { key: "GCWB-2499", summary: "Automated Customer & Internal Notification Triggers", assignee: "Nilesh", status: "Backlog", dueDate: null },
           { key: "GCWB-2507", summary: "Add workflow_service tag to workflows where the tag is not added", assignee: "Dragan", status: "Selected", dueDate: "2026-04-07" },
-          { key: "GCWB-2517", summary: "[FE] Pre-Production Status Stepper (Reusable Component)", assignee: null, status: "Backlog", dueDate: null },
           { key: "GCWB-2541", summary: "[BE] Execute workflow by workflowID", assignee: "Valentin", status: "On Staging", dueDate: "2026-04-01" },
           { key: "GCWB-2542", summary: "[BE] Endpoint to create a workflow", assignee: "Valentin", status: "On Staging", dueDate: "2026-04-02" },
           { key: "GCWB-2547", summary: "Upload feature in manage order page", assignee: "Vlad", status: "Backlog", dueDate: "2026-04-15" },
@@ -183,9 +182,9 @@ const WORKSTREAMS = [
     owner: "Felix",
     ownerFull: "Felix",
     team: "GNX team",
-    status: "BEHIND",
-    reason: "Due Apr 17 — 7 days left. All 5 production station views now In Review (GNX-8484 advanced). New story GNX-8552 added. 13 of 18 stories still in Backlog — outsourcing & production tracker not started.",
-    progress: 17,
+    status: "AT_RISK",
+    reason: "Due Apr 17 — 4 days left. 5 of 19 stories In Review (production station views). 2 new FE component stories added (GNX-8553, GNX-8554). 14 of 19 in Backlog — outsourcing & production tracker not started. MIS-20 has no linked stories.",
+    progress: 16,
     deadline: "2026-04-17",
     epics: [
       {
@@ -193,13 +192,7 @@ const WORKSTREAMS = [
         summary: "Week1: Quote-to-order",
         status: "Backlog",
         dueDate: "2026-04-10",
-        stories: [
-          { key: "GNX-8480", summary: "[PRODUCTION STATIONS] Station queue - visually distinguish MIS jobs from programmatic jobs", assignee: "Marharyta", status: "In Review", dueDate: "2026-04-14" },
-          { key: "GNX-8481", summary: "[PRODUCTION STATIONS] Station job detail - add Specifications panel for MIS jobs", assignee: "Marharyta", status: "In Review", dueDate: "2026-04-14" },
-          { key: "GNX-8482", summary: "[PRODUCTION STATIONS] Station job detail - add Materials Needed panel for MIS jobs", assignee: "Marharyta", status: "In Review", dueDate: "2026-04-14" },
-          { key: "GNX-8483", summary: "[PRODUCTION STATIONS] Station job detail - add Step Instructions panel for MIS jobs", assignee: "Marharyta", status: "In Review", dueDate: "2026-04-14" },
-          { key: "GNX-8484", summary: "[PRODUCTION STATIONS] Station job detail - add Special Handling panel for MIS jobs", assignee: "Marharyta", status: "In Review", dueDate: "2026-04-14" },
-        ],
+        stories: [],
       },
       {
         key: "GNX-8466",
@@ -207,19 +200,25 @@ const WORKSTREAMS = [
         status: "Backlog",
         dueDate: "2026-04-17",
         stories: [
+          { key: "GNX-8480", summary: "[PRODUCTION STATIONS] Station queue - visually distinguish MIS jobs from programmatic jobs", assignee: "Marharyta", status: "In Review", dueDate: "2026-04-14" },
+          { key: "GNX-8481", summary: "[PRODUCTION STATIONS] Station job detail - add Specifications panel for MIS jobs", assignee: "Marharyta", status: "In Review", dueDate: "2026-04-14" },
+          { key: "GNX-8482", summary: "[PRODUCTION STATIONS] Station job detail - add Materials Needed panel for MIS jobs", assignee: "Marharyta", status: "In Review", dueDate: "2026-04-14" },
+          { key: "GNX-8483", summary: "[PRODUCTION STATIONS] Station job detail - add Step Instructions panel for MIS jobs", assignee: "Marharyta", status: "In Review", dueDate: "2026-04-14" },
+          { key: "GNX-8484", summary: "[PRODUCTION STATIONS] Station job detail - add Special Handling panel for MIS jobs", assignee: "Marharyta", status: "In Review", dueDate: "2026-04-14" },
           { key: "GNX-8485", summary: "[PRODUCTION TRACKER] Surface Order Source (Estimate/Storefront/API) in Production Tracker", assignee: "Kateryna", status: "Backlog", dueDate: null },
           { key: "GNX-8486", summary: "[PRODUCTION TRACKER] Surface AI Estimated Time and Variance per Production Step", assignee: "Kateryna", status: "Backlog", dueDate: null },
           { key: "GNX-8487", summary: "[PRODUCTION TRACKER] Cost Analysis Section - Phase 1 Placeholder for MIS Jobs", assignee: "Kateryna", status: "Backlog", dueDate: null },
           { key: "GNX-8488", summary: "[PRODUCTION TRACKER] Rename and Restructure \"Jobs\" vs Step Overview Tabs for Clarity", assignee: "Kateryna", status: "Backlog", dueDate: null },
-          { key: "GNX-8495", summary: "[Outsourcing] Vendor Directory: List and Manage External Vendors", assignee: "Mujahid", status: "Backlog", dueDate: null },
-          { key: "GNX-8496", summary: "[Outsourcing] Vendor Rate Cards: Store and Edit Vendor Pricing", assignee: "Mujahid", status: "Backlog", dueDate: null },
+          { key: "GNX-8495", summary: "[Outsourcing] Vendor Directory: List and Manage External Vendors", assignee: "Mujahid", status: "Backlog", dueDate: "2026-04-15" },
+          { key: "GNX-8496", summary: "[Outsourcing] Vendor Rate Cards: Store and Edit Vendor Pricing", assignee: "Mujahid", status: "Backlog", dueDate: "2026-04-16" },
           { key: "GNX-8497", summary: "[Outsourcing] Mark Job Step as Outsourced and Select Vendor", assignee: "Mujahid", status: "Backlog", dueDate: null },
-          { key: "GNX-8498", summary: "[Outsourcing] Generate, Preview, and Email PO to Vendor", assignee: "Mujahid", status: "Backlog", dueDate: null },
-          { key: "GNX-8499", summary: "[Outsourcing] Generate, Preview, and Email PO to Vendor", assignee: "Mujahid", status: "Backlog", dueDate: null },
-          { key: "GNX-8500", summary: "[Outsourcing] Outsource Status Tracker and Mark as Received", assignee: "Mujahid", status: "Backlog", dueDate: null },
-          { key: "GNX-8501", summary: "[Outsourcing] Station View: Blocked Step Display for Outsourced Jobs", assignee: "Mujahid", status: "Backlog", dueDate: null },
+          { key: "GNX-8498", summary: "[Outsourcing] Generate, Preview, and Email PO to Vendor", assignee: "Mujahid", status: "Backlog", dueDate: "2026-04-21" },
+          { key: "GNX-8500", summary: "[Outsourcing] Outsource Status Tracker and Mark as Received", assignee: "Mujahid", status: "Backlog", dueDate: "2026-04-23" },
+          { key: "GNX-8501", summary: "[Outsourcing] Station View: Blocked Step Display for Outsourced Jobs", assignee: "Mujahid", status: "Backlog", dueDate: "2026-04-24" },
           { key: "GNX-8550", summary: "[PRODUCTION TRACKER] API: Job Overview endpoint with filters and pagination", assignee: "Maxim", status: "Backlog", dueDate: null },
           { key: "GNX-8552", summary: "[Prod. Station] [Placeholder] Display Order Source and Special Notes fields on MIS production station view", assignee: "Wojciech", status: "Backlog", dueDate: null },
+          { key: "GNX-8553", summary: "[FE] Pre-Production Status Stepper (Reusable Component)", assignee: "Marharyta", status: "Backlog", dueDate: "2026-04-15" },
+          { key: "GNX-8554", summary: "[FE] Multi-Part File Upload (Reusable Component)", assignee: "Marharyta", status: "Backlog", dueDate: "2026-04-15" },
         ],
       },
     ],
@@ -231,8 +230,8 @@ const WORKSTREAMS = [
     ownerFull: "Kian",
     team: "GCL team",
     status: "AT_RISK",
-    reason: "29% progress — GCL-3150 advanced to On Staging. 2 Done, 1 On Staging, 1 Selected, but 6 of 10 still in Backlog. 14 days to Apr 24. GCL-3151 and GCL-3199 due Apr 16 not yet started.",
-    progress: 29,
+    reason: "34% progress — GCL-3150 now Done (shipped). 3 Done, 1 Selected, 1 In Progress (GCL-3199 Destination Zone). 5 of 10 still in Backlog. 11 days to Apr 24. GCL-3151 due Apr 16 not yet started.",
+    progress: 34,
     deadline: "2026-04-24",
     epics: [
       {
@@ -245,10 +244,10 @@ const WORKSTREAMS = [
           { key: "GCL-3128", summary: "Extend packaging materials with MIS required fields.", assignee: "Vipul", status: "Backlog", dueDate: null },
           { key: "GCL-3148", summary: "Prepare API documentation for AI Estimator team", assignee: "Alexey", status: "Done", dueDate: null },
           { key: "GCL-3149", summary: "Prepare Quote Endpoint Docs", assignee: "Alexey", status: "Done", dueDate: null },
-          { key: "GCL-3150", summary: "Extend Shipping Rules for Packaging Materials", assignee: "Alexey", status: "On Staging", dueDate: "2026-04-10" },
+          { key: "GCL-3150", summary: "Extend Shipping Rules for Packaging Materials", assignee: "Alexey", status: "Done", dueDate: "2026-04-10" },
           { key: "GCL-3151", summary: "Support PSP-Created Methods custom shipping methods", assignee: "Alexey", status: "Backlog", dueDate: "2026-04-16" },
           { key: "GCL-3197", summary: "Packaging Rules Adaptation", assignee: "Alexey", status: "Selected", dueDate: "2026-04-14" },
-          { key: "GCL-3199", summary: "Destination Zone Creation", assignee: "Hamza", status: "Backlog", dueDate: "2026-04-16" },
+          { key: "GCL-3199", summary: "Destination Zone Creation", assignee: "Hamza", status: "In Progress", dueDate: "2026-04-16" },
           { key: "GCL-3203", summary: "Migrate existing AI Estimator shipping config to GCL", assignee: "Alexey", status: "Backlog", dueDate: "2026-04-21" },
           { key: "GCL-3204", summary: "Shadow Mode Testing (Current vs GCL-Estimates)", assignee: "Alexey", status: "Backlog", dueDate: "2026-04-23" },
         ],
@@ -262,8 +261,8 @@ const WORKSTREAMS = [
     ownerFull: "Vipul",
     team: "GCP team",
     status: "OFF_TRACK",
-    reason: "All 12 stories across 2 epics in Backlog — zero progress. GCP-3695 (inventory/stock) adds 7 stories. Only GCP-3743 has a due date (Apr 13, past). 14 days to Apr 24 with no development started.",
-    progress: 0,
+    reason: "3% progress — GCP-3743 now In Progress (due Apr 13, today). 11 of 12 stories still in Backlog. 11 days to Apr 24. GCP-3695 inventory/stock (7 stories) unassigned and unstarted.",
+    progress: 3,
     deadline: "2026-04-24",
     epics: [
       {
@@ -290,7 +289,7 @@ const WORKSTREAMS = [
           { key: "GCP-3728", summary: "Import Substrates into GCP \u2014 From Core Catalog (Product Platform) and AI Estimator with Supplier Assignment, Pricing, and Inventory Creation", assignee: "Yurii", status: "Backlog", dueDate: null },
           { key: "GCP-3741", summary: "[BE] Support the Product Platform substrates", assignee: null, status: "Backlog", dueDate: null },
           { key: "GCP-3742", summary: "[BE] Migration script for the existing Papers to move them from GCP to the Product Platform SKUs", assignee: "Mykhailo", status: "Backlog", dueDate: null },
-          { key: "GCP-3743", summary: "[BE] Create APIs on Product Platform that can automatically Clone and Create the SKUs for the paper (Extend CreateProductWithAttributeValues)", assignee: "Rushikesh", status: "Backlog", dueDate: "2026-04-13" },
+          { key: "GCP-3743", summary: "[BE] Create APIs on Product Platform that can automatically Clone and Create the SKUs for the paper (Extend CreateProductWithAttributeValues)", assignee: "Rushikesh", status: "In Progress", dueDate: "2026-04-13" },
           { key: "GCP-3745", summary: "Create APIs to consume the Paper from Workflow Builder", assignee: "Mykhailo", status: "Backlog", dueDate: null },
         ],
       },
@@ -303,7 +302,7 @@ const WORKSTREAMS = [
     ownerFull: "Felix",
     team: "GNX team",
     status: "OFF_TRACK",
-    reason: "All 10 stories in Backlog with zero progress. New story GNX-8551 added (Invoicing Information — customer record). Due Apr 24 (14 days). No due dates assigned.",
+    reason: "All 10 stories in Backlog — zero progress. GNX-8551 (Invoicing Information, due Apr 13) and GNX-8535 (Credit memos, due Apr 17) overdue. 11 days to Apr 24 with no development started.",
     progress: 0,
     deadline: "2026-04-24",
     epics: [
@@ -339,7 +338,7 @@ const MILESTONES = [
 
 // ─── Utility functions ───
 function daysUntil(dateStr) {
-  const now = new Date("2026-04-10");
+  const now = new Date("2026-04-13");
   const target = new Date(dateStr);
   return Math.ceil((target - now) / (1000 * 60 * 60 * 24));
 }
@@ -352,7 +351,7 @@ function formatDate(dateStr) {
 
 function isPastDue(dateStr) {
   if (!dateStr) return false;
-  return new Date(dateStr) < new Date("2026-04-10");
+  return new Date(dateStr) < new Date("2026-04-13");
 }
 
 // ─── Components ───
